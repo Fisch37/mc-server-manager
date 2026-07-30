@@ -1,0 +1,164 @@
+# API Specification
+Specification for the backend API.
+
+All request and response bodies are JSON encoded unless otherwise specified.
+If no response code is specified, 200 is assumed.
+
+## Servers
+### POST /server/new
+Create a new server from a template.
+
+Request Body: A [server builder object](#server-builder-object)
+
+Response: A [server object](#server-object)
+
+### GET /server/list
+Get a list of servers.
+
+Response: a list of [server objects](#server-object)
+
+### GET /server/{id}
+Get information about a specific server.
+
+Response:
+    - a [server object](#server-object)
+    - 404 Not Found if no server exists with that id
+
+### DELETE /server/{id}
+Delete this server.
+
+Response:
+    - 204 No Content on a success
+    - 404 Not Found if no server exists with that id
+    - 409 Conflict, if the server is not `"started"` or `"crashed"`,
+        containing the current [server status](#server-status-object)
+
+### PUT /server/{id}/name
+Change the name of the specified server.
+
+Request Body: A string with the new name.
+
+Response:
+    - the new [server object](#server-object)
+    - 404 Not Found if no server exists with that id
+
+## Server Execution
+### GET /server/{id}/status
+Get the current server status.
+
+Response: A [server status object](#server-status-object).
+
+### GET /server/{id}/status/follow
+Get a websocket that tracks the status of this server.
+
+Response: A [server status socket](#server-status-socket).
+
+### POST /server/{id}/start
+Start the server.
+May receive a `follow` query parameter with no value.
+
+Response:
+    - 204 No Content,
+        unless `follow` is specified, in which case a new [server status socket](#server-status-socket) is returned.
+    - 409 Conflict, if the server is not `"stopped"` or `"crashed"`,
+        containing the current [server status](#server-status-object)
+
+### POST /server/{id}/stop
+Stop the server.
+
+Response:
+    - 204 No Content
+    - 409 Conflict, if the server is not `"started"`,
+        containing the current [server status](#server-status-object)
+
+### POST /server/{id}/restart
+Restart the server.
+May receive a `follow` query parameter with no value.
+
+Response: 
+    - 204 No Content,
+        unless `follow` is specified, in which case a new [server status socket](#server-status-socket) is returned.
+    - 409 Conflict, if the server is not `"started"`,
+        containing the current [server status](#server-status-object)
+
+### GET /server/{id}/console
+Get a websocket for the console output.
+
+Response: A [console socket](#console-socket)
+
+### POST /server/{id}/console
+Send a line to the console input.
+
+Request Body: A JSON string.
+
+Response:
+    - 204 No Content on a success
+    - 409 Conflict if the server is not `"started"`, `"starting"` or `"stopping"`
+
+
+## Templates
+### GET /server/templates
+Get a list of templates.
+
+Response: a list of [template summary objects](#template-summary-object)
+
+# WebSockets
+## Server Status Socket
+### Sends
+- a [server status object](#server-status-socket) for the selected server, 
+    - when the socket is first opened
+    - and then once every five seconds
+    - **or** when the server status changes
+
+## Console Socket
+### Sends
+- The backlog as a list of [console line objects](#console-line-object)
+    - when the connection is first made.
+- A [console line object](#console-line-object)
+    - when the server has written a new line into the console.
+
+# Objects
+### Server Object
+```json
+{
+    "id": <uuid string>,
+    "name": <string>
+}
+```
+
+### Server Builder Object
+```json
+{
+    "name": <string>,
+    "template": <template id string>,
+    "version": <version string>
+}
+```
+
+### Server Status Object
+```json
+{
+    "server_id": <uuid string>,
+    "status": "stopping"|"stopped"|"crashed"|"starting"|"started"
+}
+```
+
+### Console Line Object
+```json
+{
+    "server_id": <uuid string>,
+    "line": <string>,
+    "channel": "stdout"|"stderr"
+}
+```
+
+### Template Summary Object
+```json
+{
+    "id": <cleartext string>,
+    "has_mods": <boolean>,
+    "versions": [
+        <version string>*
+    ]
+}
+```
