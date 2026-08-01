@@ -20,5 +20,5 @@ public class AppConfig {
         dataSource.setUsername("sa"/*env.getProperty("user")*/);
         dataSource.setPassword("sa"/*env.getProperty("password")*/);
         return dataSource;
-    }    
+    }
 }

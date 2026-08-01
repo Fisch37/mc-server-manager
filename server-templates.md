@@ -26,10 +26,38 @@ The following is an annotated example structure for a `template.xml` file.
 <template id="example-template" abstract="">
     <!-- This is the name of the template that will be shown to users -->
     <name>Example Server Template</name>
-    <!-- If specified, this template will be applied before the current one -->
+    <!--
+        If specified, this template will be applied before the current one.
+        Note that if a parent is specified, the following options need not be provided:
+            - versions
+            - executable
+        If they are specified, they override the parent values.
+    -->
     <parent id="vanilla" />
     <!--
+        Specifies how this server should be executed.
+        "file" should be a path to the target jar.
+        The executable file will automatically be fetched
+        from the version registry when creating the server,
+        so it needn't be included via files or overlays.
+    -->
+    <executable file="server.jar">
+        <!--
+            How the server can be terminated.
+            Accepts one of "command" or "signal"
+        -->
+        <terminator>
+            <!-- The text to send on the command line -->
+            <command>/stop</command>
+            <!-- Terminate the process by sending SIGTERM -->
+            <signal />
+        </terminator>
+        <argument>-Xmx4G</argument>
+        <argument>-Xms4G</argument>
+    </executable>
+    <!--
         A list of supported versions.
+        If a listed version does not exist when the template is loaded, it will be ignored.
     -->
     <versions>
         <version id="1.21.11" />
