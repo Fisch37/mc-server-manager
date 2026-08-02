@@ -1,5 +1,5 @@
 ### backend
-FROM maven:3.9.9-eclipse-temurin-21 AS build_java
+FROM maven:3.9.16-eclipse-temurin-25-alpine AS build_java
 
 WORKDIR /workspace/
 
@@ -16,7 +16,7 @@ RUN mvn --batch-mode -am -DskipTests package \
     && cp "${JAR_PATH}" /tmp/app.jar
 
 
-FROM eclipse-temurin:21-jre AS runtime
+FROM eclipse-temurin:25-jre AS runtime
 
 ### frontend
 FROM denoland/deno:debian AS build_deno
