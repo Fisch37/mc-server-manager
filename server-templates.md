@@ -45,6 +45,7 @@ The following is an annotated example structure for a `template.xml` file.
         <!--
             How the server can be terminated.
             Accepts one of "command" or "signal"
+            (both are shown here for the sake of documentation)
         -->
         <terminator>
             <!-- The text to send on the command line -->

@@ -40,4 +40,7 @@ public class Server {
     public String getCurrentVersionId() {
         return currentVersionId;
     }
+    public void setCurrentVersionId(String versionId) {
+        this.currentVersionId = versionId;
+    }
 }

@@ -1,5 +1,6 @@
 package de.maria_writes_code.mcsm.backend.features.versions;
 
+import java.io.OutputStream;
 import org.apache.commons.lang3.NotImplementedException;
 import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,16 @@ public class VersionRegistry {
      * @see VersionRegistry
      */
     public @Nullable Version getVersionInfo(String versionId) {
+        throw new NotImplementedException();
+    }
+
+    /**
+     * Download the executable for the specified version.
+     * @param versionId The version to download for
+     * @param destination The stream into which the executable is downloaded.
+     * @return The download process
+     */
+    public void getExecutable(String versionId, OutputStream destination) {
         throw new NotImplementedException();
     }
 }
