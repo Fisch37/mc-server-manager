@@ -3,6 +3,8 @@ package de.maria_writes_code.mcsm.backend.features.server;
 import java.util.UUID;
 
 import org.jspecify.annotations.NullUnmarked;
+
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -15,9 +17,17 @@ public class Server {
     @Id @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Column(nullable = false)
     private String name;
 
+    @Column(nullable = false)
     private String currentVersionId;
+
+    @Column(nullable = false)
+    private String templateId;
+
+    private int lastExitCode;
+    private int javaVersion;
 
     public Server() { }
     public Server(String name, String version) {
@@ -42,5 +52,29 @@ public class Server {
     }
     public void setCurrentVersionId(String versionId) {
         this.currentVersionId = versionId;
+    }
+
+    public String getTemplateId() {
+        return templateId;
+    }
+    public void setTemplateId(String templateId) {
+        this.templateId = templateId;
+    }
+    
+    public int getJavaVersion() {
+        return javaVersion;
+    }
+    public void setJavaVersion(int javaVersion) {
+        this.javaVersion = javaVersion;
+    }
+
+    public int getLastExitCode() {
+        return lastExitCode;
+    }
+    public void setLastExitCode(int code) {
+        lastExitCode = code;
+    }
+    public boolean hasCrashed() {
+        return lastExitCode != 0;
     }
 }

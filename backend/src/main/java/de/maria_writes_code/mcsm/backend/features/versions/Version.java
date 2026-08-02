@@ -1,5 +1,12 @@
 package de.maria_writes_code.mcsm.backend.features.versions;
 
-public record Version(String id, int javaVersion) {
-    
+import java.io.IOException;
+
+public interface Version {
+    String id();
+    Version.Details fetchVersionDetails() throws IOException;
+
+    public interface Details {
+        int javaVersion();
+    }
 }

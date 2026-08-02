@@ -25,4 +25,8 @@ public class CustomAppConfig {
     public Path getTemplateLocation() {
         return getDataLocation().resolve("templates");
     }
+
+    public Path getRuntimeLocation() {
+        return getDataLocation().resolve("runtimes");
+    }
 }

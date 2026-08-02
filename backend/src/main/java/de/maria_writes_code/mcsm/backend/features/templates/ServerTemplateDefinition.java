@@ -57,7 +57,7 @@ public record ServerTemplateDefinition(
         @Type(value = ServerTemplateDefinition.CommandTerminator.class),
         @Type(value = ServerTemplateDefinition.SignalTerminator.class)
     })
-    private sealed interface Terminator permits CommandTerminator, SignalTerminator { }
+    public sealed interface Terminator permits CommandTerminator, SignalTerminator { }
 
     public record CommandTerminator(
         @JacksonXmlProperty(localName = "command")

@@ -66,7 +66,7 @@ Response:
 ### POST /server/{id}/stop
 Stop the server.
 
-Response:
+- Response
     - 204 No Content
     - 409 Conflict, if the server is not `"started"`,
         containing the current [server status](#server-status-object)
@@ -75,7 +75,7 @@ Response:
 Restart the server.
 May receive a `follow` query parameter with no value.
 
-Response: 
+- Response
     - 204 No Content,
         unless `follow` is specified, in which case a new [server status socket](#server-status-socket) is returned.
     - 409 Conflict, if the server is not `"started"`,
@@ -97,10 +97,17 @@ Response:
 
 
 ## Templates
-### GET /server/templates
+### GET /templates
 Get a list of templates.
 
 Response: a list of [template summary objects](#template-summary-object)
+
+### GET /templates/{id}
+Get information about a single template.
+
+- Response:
+    - A [template summary object](#template-summary-object)
+    - 404 Not Found if there is no template of that name
 
 # WebSockets
 ## Server Status Socket
