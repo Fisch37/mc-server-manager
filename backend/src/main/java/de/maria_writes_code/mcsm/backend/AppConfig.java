@@ -1,24 +1,39 @@
 package de.maria_writes_code.mcsm.backend;
 
-import javax.sql.DataSource;
+import java.io.File;
+import java.nio.file.Path;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
 
-@Configuration
+@Component
 public class AppConfig {
-    @Autowired CustomAppConfig config;
+    private static final String DATA_LOC_ENV = "MCSM_DATA_PATH";
+    private static final File DATA_LOC_DEFAULT = Path.of("/", "var", "mcsm").toFile();
 
-    @Bean
-    public DataSource dataSource() {
-        final DriverManagerDataSource dataSource = new DriverManagerDataSource();
-        dataSource.setDriverClassName("org.sqlite.JDBC");
-        dataSource.setUrl("jdbc:sqlite:" + config.getDatabaseLocation().toAbsolutePath().toString());
-        // dataSource.setUrl("jdbc:sqlite:test.sqlite"/*env.getProperty("url")*/);
-        dataSource.setUsername("sa");
-        dataSource.setPassword("sa");
-        return dataSource;
+    @Autowired
+    Environment env;
+
+    private Path getDataLocation() {
+        // Hacky forwards-backwards conversion, because Path is actually closer to what we want
+        // (but env cannot convert Strings to Paths [I think bc Path is OS independent])
+        return env.getProperty(DATA_LOC_ENV, File.class, DATA_LOC_DEFAULT).toPath();
+    }
+
+    public Path getServerLocation() {
+        return getDataLocation().resolve("servers");
+    }
+    
+    public Path getTemplateLocation() {
+        return getDataLocation().resolve("templates");
+    }
+
+    public Path getRuntimeLocation() {
+        return getDataLocation().resolve("runtimes");
+    }
+
+    public Path getDatabaseLocation() {
+        return getDataLocation().resolve("database.sqlite");
     }
 }

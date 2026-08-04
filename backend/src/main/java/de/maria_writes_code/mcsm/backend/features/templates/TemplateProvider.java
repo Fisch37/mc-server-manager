@@ -16,14 +16,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
-import de.maria_writes_code.mcsm.backend.CustomAppConfig;
+import de.maria_writes_code.mcsm.backend.AppConfig;
 
 @Service @Scope("singleton")
 public class TemplateProvider implements InitializingBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(TemplateProvider.class);
 
     @Autowired
-    private CustomAppConfig config;
+    private AppConfig config;
     @Autowired
     private ServerTemplate.Context templateContext;
 

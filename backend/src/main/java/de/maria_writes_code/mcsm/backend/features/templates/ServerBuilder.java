@@ -6,7 +6,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import de.maria_writes_code.mcsm.backend.CustomAppConfig;
+import de.maria_writes_code.mcsm.backend.AppConfig;
 import de.maria_writes_code.mcsm.backend.Utils;
 import de.maria_writes_code.mcsm.backend.features.server.ActiveServer;
 import de.maria_writes_code.mcsm.backend.features.server.Server;
@@ -81,7 +81,7 @@ public class ServerBuilder {
         @Autowired
         private VersionRegistry versionRegistry;
         @Autowired
-        private CustomAppConfig config;
+        private AppConfig config;
         @Autowired
         private ActiveServer.Context activeServerContext;
         @Autowired

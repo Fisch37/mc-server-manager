@@ -12,7 +12,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import de.maria_writes_code.mcsm.backend.CustomAppConfig;
+import de.maria_writes_code.mcsm.backend.AppConfig;
 import de.maria_writes_code.mcsm.backend.Utils;
 import de.maria_writes_code.mcsm.backend.features.runtimes.RuntimeProvider;
 import de.maria_writes_code.mcsm.backend.features.templates.ServerTemplate;
@@ -141,7 +141,7 @@ public class ActiveServer {
     @Component
     public static class Context implements InitializingBean {
         @Autowired
-        private CustomAppConfig appConfig;
+        private AppConfig appConfig;
         @Autowired
         private ServerRepository repo;
         // @Autowired

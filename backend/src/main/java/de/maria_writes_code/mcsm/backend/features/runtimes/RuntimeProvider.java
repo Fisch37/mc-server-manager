@@ -12,13 +12,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
-import de.maria_writes_code.mcsm.backend.CustomAppConfig;
+import de.maria_writes_code.mcsm.backend.AppConfig;
 import static de.maria_writes_code.mcsm.backend.App.LOGGER;
 
 @Service @Scope("singleton")
 public class RuntimeProvider implements InitializingBean {
     @Autowired
-    CustomAppConfig config;
+    AppConfig config;
 
     private SortedMap<Integer, AdoptiumRuntime> runtimes;
 
