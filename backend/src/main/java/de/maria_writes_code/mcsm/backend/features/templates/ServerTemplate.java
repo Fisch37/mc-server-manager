@@ -10,10 +10,13 @@ import java.util.Optional;
 
 import org.apache.commons.io.FileUtils;
 import org.jspecify.annotations.NullMarked;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 
+import de.maria_writes_code.mcsm.backend.Utils;
 import de.maria_writes_code.mcsm.backend.features.versions.VersionRegistry;
 
 @NullMarked
@@ -24,11 +27,8 @@ public class ServerTemplate {
         TEMPLATE_OVERLAY_LOC = "overlays"
         ;
     private final static XmlMapper TEMPLATE_READER = new XmlMapper();
-
-    @Autowired
-    private VersionRegistry versionRegistry;
-    @Autowired
-    private TemplateProvider templateProvider;
+    
+    private final Context context;
 
     private final Path location;
     private final ServerTemplateDefinition definition;
@@ -39,7 +39,8 @@ public class ServerTemplate {
      * @throws IOException an I/O error occurred while reading the template definition.
      * @throws FileNotFoundException The template structure is invalid
      */
-    public ServerTemplate(Path location) throws IOException {
+    public ServerTemplate(Context context, Path location) throws IOException {
+        this.context = context;
         this.location = location;
         
         try (var template_file = new BufferedReader(
@@ -48,7 +49,7 @@ public class ServerTemplate {
             definition = TEMPLATE_READER.readValue(template_file, ServerTemplateDefinition.class);
         }
 
-        if (getFilesLocation().toFile().isDirectory()) {
+        if (!getFilesLocation().toFile().isDirectory()) {
             throw new FileNotFoundException("Template does not have a files directory");
         }
         for (var overlay : definition.overlays()) {
@@ -75,7 +76,8 @@ public class ServerTemplate {
     public void apply(Path path, String versionId) throws IOException {
         var parentTemplate = Optional.ofNullable(definition.parent())
             .map(parent -> parent.id())
-            .flatMap(parentId -> Optional.ofNullable(templateProvider.getTemplate(parentId)))
+            // TODO: Throw an error or warning when the parent template is specified, but does not exist
+            .flatMap(parentId -> Optional.ofNullable(context.templateProvider.getTemplate(parentId)))
             .orElse(null);
         if (parentTemplate != null)
             parentTemplate.apply(path, versionId);
@@ -92,8 +94,25 @@ public class ServerTemplate {
             }
         }
 
-        try (var file = new FileOutputStream(location.resolve(definition.executable().file()).toFile())) {
-            versionRegistry.getExecutable(versionId, file);
+        try (var file = new FileOutputStream(path.resolve(definition.executable().file()).toFile())) {
+            context.versionRegistry.getExecutable(versionId, file);
+        }
+    }
+
+    @Component
+    public static class Context implements InitializingBean {
+        @Autowired
+        private VersionRegistry versionRegistry;
+        // @Autowired
+        private TemplateProvider templateProvider;
+        
+        public void setTemplateProvider(TemplateProvider templateProvider) {
+            this.templateProvider = templateProvider;
+        }
+
+        @Override
+        public void afterPropertiesSet() throws Exception {
+            Utils.requireNonNull(versionRegistry);
         }
     }
 }

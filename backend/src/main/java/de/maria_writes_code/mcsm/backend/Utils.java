@@ -1,6 +1,7 @@
 package de.maria_writes_code.mcsm.backend;
 
 import java.util.Collection;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -35,6 +36,11 @@ public abstract sealed class Utils permits Utils.Seal {
         return contains(collection, t -> mapper.apply(t).equals(comparer));
     }
     
+    public static void requireNonNull(Object... objects) {
+        for (var o : objects) {
+            Objects.requireNonNull(o);
+        }
+    }
     
     private static final class Seal extends Utils { }
 }

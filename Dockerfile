@@ -49,6 +49,11 @@ COPY frontend/nginx.conf /etc/nginx/sites-enabled/default
 COPY --from=build_deno /build/dist /usr/share/nginx/html
 COPY --from=build_java /tmp/app.jar ./app.jar
 
+VOLUME /var/mcsm/
+# TODO: Introduce a better permission system
+RUN mkdir /var/mcsm
+RUN chmod 777 /var/mcsm
+
 # ENTRYPOINT ["java", "-jar", "app.jar"]
 CMD ["bash", "-lc", "\
   java -jar app.jar & JAVA_PID=$!; \

@@ -10,29 +10,35 @@ import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 @Service
 @Scope("singleton")
-public class ServerManager {
+public class ServerManager implements InitializingBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(ServerManager.class);
 
     @Autowired
     private ServerRepository repo;
+    @Autowired
+    private ActiveServer.Context activeServerContext;
 
     private ConcurrentMap<UUID, ActiveServer> servers;
 
-    public ServerManager() throws IOException {
+    public ServerManager() { }
+
+    @Override
+    public void afterPropertiesSet() throws IOException {
+        activeServerContext.setServerManager(this);
         servers = repo.findAll()
             .stream()
-            .map(ActiveServer::new)
+            .map(s -> new ActiveServer(activeServerContext, s))
             .collect(Collectors.toConcurrentMap(
                 s -> s.getServer().getId(),
                 Function.identity()
             ));
-        
     }
 
     public Optional<ActiveServer> get(UUID uuid) {
@@ -65,6 +71,16 @@ public class ServerManager {
             LOGGER.warn(
                 "Tried to revive server {}, but one of its uuid exists!",
                 server.getId()
+            );
+        }
+    }
+
+    public void add(ActiveServer server) {
+        var oldServer = servers.put(server.getId(), server);
+        if (oldServer != null) {
+            LOGGER.warn(
+                "New server replaced old server of same uuid {} (\"{}\")",
+                oldServer.getId(), oldServer.getServer().getName()
             );
         }
     }

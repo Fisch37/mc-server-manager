@@ -6,15 +6,13 @@ import org.jspecify.annotations.NullUnmarked;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 
 // all entities are nullunmarked, because JPA creates null values whenever it wants
 @Entity
 @NullUnmarked
 public class Server {
-    @Id @GeneratedValue(strategy = GenerationType.UUID)
+    @Id @Column(nullable = false)
     private UUID id;
 
     @Column(nullable = false)
@@ -29,10 +27,23 @@ public class Server {
     private int lastExitCode;
     private int javaVersion;
 
-    public Server() { }
+    // TODO: Is this safe for JPA, which will want to set its own ids?
+    public Server() {
+        id = UUID.randomUUID();
+    }
     public Server(String name, String version) {
+        this();
         this.name = name;
         this.currentVersionId = version;
+    }
+    public Server(Server original) {
+        id = original.id;
+        name = original.name;
+        currentVersionId = original.currentVersionId;
+        templateId = original.templateId;
+        
+        lastExitCode = original.lastExitCode;
+        javaVersion = original.javaVersion;
     }
 
 

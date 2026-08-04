@@ -2,17 +2,21 @@ package de.maria_writes_code.mcsm.backend.features.versions;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import org.apache.commons.lang3.NotImplementedException;
+
+import org.apache.commons.io.IOUtils;
 import org.jspecify.annotations.Nullable;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import static de.maria_writes_code.mcsm.backend.App.LOGGER;
 
 /**
  * Provides metadata about available versions.
@@ -24,20 +28,24 @@ import com.fasterxml.jackson.databind.JsonNode;
  *  No guarantees are made about the format of valid version ids.
  */
 @Service @Scope("singleton")
-public class VersionRegistry {
-    private static final URI MANIFEST_URL;
+public class VersionRegistry implements InitializingBean {
+    private static final URL MANIFEST_URL;
     static {
         try {
-            MANIFEST_URL = new URI("https://piston-meta.mojang.com/mc/game/version_manifest_v2.json");
-        } catch (URISyntaxException e) {
+            MANIFEST_URL = new URI("https://piston-meta.mojang.com/mc/game/version_manifest_v2.json").toURL();
+        } catch (URISyntaxException|MalformedURLException e) {
             throw new RuntimeException(e);
         }
     }
 
     private ConcurrentMap<String, VanillaVersion> versions;
 
-    public VersionRegistry() throws IOException {
-        JsonNode versionsRaw = VanillaVersion.MAPPER.readTree(MANIFEST_URL.toURL().openStream())
+    public VersionRegistry() { }
+
+    @Override
+    public void afterPropertiesSet() throws IOException {
+        var request = MANIFEST_URL.openStream();
+        JsonNode versionsRaw = VanillaVersion.MAPPER.readTree(request)
             .get("versions");
         if (!versionsRaw.isArray()) {
             throw new IOException("Malformed manifest: Expected a versions array");
@@ -47,6 +55,7 @@ public class VersionRegistry {
             var manifest = VanillaVersion.MAPPER.treeToValue(version, ManifestVersion.class);
             versions.put(manifest.id(), manifest.toVanilla());
         }
+        LOGGER.info("Fetched available versions!");
     }
 
     /**
@@ -65,8 +74,16 @@ public class VersionRegistry {
      * @param destination The stream into which the executable is downloaded.
      * @return The download process
      */
-    public void getExecutable(String versionId, OutputStream destination) {
-        throw new NotImplementedException();
+    public void getExecutable(String versionId, OutputStream destination) throws IOException {
+        var version = versions.get(versionId);
+        if (version == null) {
+            throw new IllegalArgumentException("Version does not exist");
+        }
+        var url = version.fetchVersionDetailsConcrete().serverJar();
+        try(var data = url.openStream()) {
+            IOUtils.copy(data, destination);
+            // data.transferTo(destination);
+        }
     }
 
     private record ManifestVersion(String id, URL url) {

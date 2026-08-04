@@ -9,7 +9,9 @@ import org.jspecify.annotations.Nullable;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.Nulls;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
@@ -30,6 +32,7 @@ public record ServerTemplateDefinition(
     @Nullable Parent parent,
     Executable executable,
     List<Version> versions,
+    @JsonSetter(nulls = Nulls.AS_EMPTY)
     List<Overlay> overlays
 ) {
     @JacksonXmlRootElement(localName = "parent")

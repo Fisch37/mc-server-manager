@@ -8,9 +8,12 @@ import java.util.UUID;
 import org.apache.commons.io.FileUtils;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import de.maria_writes_code.mcsm.backend.CustomAppConfig;
+import de.maria_writes_code.mcsm.backend.Utils;
 import de.maria_writes_code.mcsm.backend.features.runtimes.RuntimeProvider;
 import de.maria_writes_code.mcsm.backend.features.templates.ServerTemplate;
 import de.maria_writes_code.mcsm.backend.features.templates.TemplateProvider;
@@ -19,30 +22,22 @@ import de.maria_writes_code.mcsm.backend.features.versions.VersionRegistry;
 
 @NullMarked
 public class ActiveServer {
-    @Autowired
-    private CustomAppConfig appConfig;
-    @Autowired
-    private ServerRepository repo;
-    @Autowired
-    private ServerManager serverManager;
-    @Autowired
-    private VersionRegistry versionRegistry;
-    @Autowired
-    private TemplateProvider templateProvider;
-    @Autowired
-    private RuntimeProvider runtimeProvider;
+    private final Context context;
 
     private final UUID id;
 
+    // TODO: Long lived entities are not supported in JPA
+    //  repo.save will overwrite changes made by other transactions
     private Server server;
     @Nullable
     private ServerProcess process;
     private ServerStatus status;
     
-    public ActiveServer(Server server) {
-        this.id = server.getId();
-        this.server = server;
-        this.status = server.hasCrashed() ? ServerStatus.Crashed : ServerStatus.Stopped;
+    public ActiveServer(Context context, Server server) {
+        this.context = context;
+        this.server = new Server(server);
+        this.id = this.server.getId();
+        this.status = this.server.hasCrashed() ? ServerStatus.Crashed : ServerStatus.Stopped;
     }
 
     public UUID getId() {
@@ -54,11 +49,11 @@ public class ActiveServer {
     }
 
     public Path getLocation() {
-        return appConfig.getServerLocation().resolve(id.toString());
+        return context.appConfig.getServerLocation().resolve(id.toString());
     }
 
     public @Nullable Version getVersion() {
-        return versionRegistry.getVersionInfo(server.getCurrentVersionId());
+        return context.versionRegistry.getVersionInfo(server.getCurrentVersionId());
     }
 
     public ServerStatus getStatus() {
@@ -66,25 +61,25 @@ public class ActiveServer {
     }
 
     private @Nullable ServerTemplate getTemplate() {
-        return templateProvider.getTemplate(server.getTemplateId());
+        return context.templateProvider.getTemplate(server.getTemplateId());
     }
 
 
 
     public synchronized void rename(String newName) {
         server.setName(newName);
-        server = repo.save(server);
+        server = context.repo.save(server);
     }
 
     public synchronized void delete() throws IllegalStateException, IOException {
         if (process != null && status.isAlive()) {
             throw new IllegalStateException("Cannot delete a running server");
         }
-        serverManager.drop(this);
+        context.serverManager.drop(this);
         try {
-            repo.deleteById(id);
+            context.repo.deleteById(id);
         } catch (Exception e) {
-            serverManager.revive(this);
+            context.serverManager.revive(this);
             throw e;
         }
         FileUtils.deleteDirectory(getLocation().toFile());
@@ -94,7 +89,7 @@ public class ActiveServer {
     
     public void start() throws IOException {
         var executable = getTemplate().getDefinition().executable();
-        var runtime = runtimeProvider.getRuntime(server.getJavaVersion());
+        var runtime = context.runtimeProvider.getRuntime(server.getJavaVersion());
         if (runtime == null) {
             throw new IllegalStateException("Runtime for server does not exist");
         }
@@ -123,7 +118,7 @@ public class ActiveServer {
             status = ServerStatus.Stopped;
             synchronized (this) {
                 server.setLastExitCode(process.getExitValue());
-                server = repo.save(server);
+                server = context.repo.save(server);
             }
         } else {
             throw new IllegalStateException("Tried to stop the server, but it isn't running");
@@ -141,5 +136,29 @@ public class ActiveServer {
 
     public void sendCommand(String line) throws IOException {
         process.sendCommand(line);
+    }
+
+    @Component
+    public static class Context implements InitializingBean {
+        @Autowired
+        private CustomAppConfig appConfig;
+        @Autowired
+        private ServerRepository repo;
+        // @Autowired
+        private ServerManager serverManager;
+        @Autowired
+        private VersionRegistry versionRegistry;
+        @Autowired
+        private TemplateProvider templateProvider;
+        @Autowired
+        private RuntimeProvider runtimeProvider;
+        @Override
+        public void afterPropertiesSet() throws Exception {
+            Utils.requireNonNull(appConfig, repo, versionRegistry, templateProvider, runtimeProvider);
+        }
+
+        public void setServerManager(ServerManager serverManager) {
+            this.serverManager = serverManager;
+        }
     }
 }

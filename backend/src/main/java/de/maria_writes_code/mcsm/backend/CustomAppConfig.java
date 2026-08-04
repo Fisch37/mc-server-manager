@@ -1,5 +1,6 @@
 package de.maria_writes_code.mcsm.backend;
 
+import java.io.File;
 import java.nio.file.Path;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,13 +10,15 @@ import org.springframework.stereotype.Component;
 @Component
 public class CustomAppConfig {
     private static final String DATA_LOC_ENV = "MCSM_DATA_PATH";
-    private static final Path DATA_LOC_DEFAULT = Path.of("var", "mcsm");
+    private static final File DATA_LOC_DEFAULT = Path.of("/", "var", "mcsm").toFile();
 
     @Autowired
     Environment env;
 
-    Path getDataLocation() {
-        return env.getProperty(DATA_LOC_ENV, Path.class, DATA_LOC_DEFAULT);
+    private Path getDataLocation() {
+        // Hacky forwards-backwards conversion, because Path is actually closer to what we want
+        // (but env cannot convert Strings to Paths [I think bc Path is OS independent])
+        return env.getProperty(DATA_LOC_ENV, File.class, DATA_LOC_DEFAULT).toPath();
     }
 
     public Path getServerLocation() {

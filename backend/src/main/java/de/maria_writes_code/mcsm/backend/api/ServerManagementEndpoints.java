@@ -31,13 +31,17 @@ public class ServerManagementEndpoints {
     private ServerManager manager;
     @Autowired
     private TemplateProvider templateProvider;
+    @Autowired
+    private ServerBuilder.Context builderServices;
 
     @PostMapping("new")
     public ServerObject createServer(@RequestBody ServerBuilderObject builderParams) {
-        var builder = new ServerBuilder();
+        var builder = new ServerBuilder(builderServices);
         try {
             builderParams.apply(builder, templateProvider);
-            return new ServerObject(builder.build());
+            var server = builder.build();
+            manager.add(server);
+            return new ServerObject(server);
         } catch (IOException e) {
             throw new ResponseStatusException(
                 HttpStatus.INTERNAL_SERVER_ERROR,
