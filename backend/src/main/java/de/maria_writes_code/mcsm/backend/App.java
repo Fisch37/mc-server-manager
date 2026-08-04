@@ -7,7 +7,9 @@ import org.springframework.web.bind.annotation.RestController;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Info;
 
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = "de.maria_writes_code.mcsm.backend")
+@EntityScan("de.maria_writes_code.mcsm.backend")
+@EnableJpaRepositories("de.maria_writes_code.mcsm.backend")
 @RestController
 @OpenAPIDefinition(info = @Info(title = "MC Server Manager API"))
 public class App {

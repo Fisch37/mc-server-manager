@@ -138,4 +138,8 @@ public class ActiveServer {
         stop();
         start();
     }
+
+    public void sendCommand(String line) throws IOException {
+        process.sendCommand(line);
+    }
 }

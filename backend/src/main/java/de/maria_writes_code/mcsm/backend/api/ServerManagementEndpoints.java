@@ -1,11 +1,11 @@
-package de.maria_writes_code.api;
+package de.maria_writes_code.mcsm.backend.api;
+
+import static de.maria_writes_code.mcsm.backend.api.EndpointConsts.NO_SERVER_EXISTS;
 
 import java.io.IOException;
 import java.util.UUID;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -22,12 +22,11 @@ import de.maria_writes_code.mcsm.backend.features.server.Server;
 import de.maria_writes_code.mcsm.backend.features.server.ServerManager;
 import de.maria_writes_code.mcsm.backend.features.templates.ServerBuilder;
 import de.maria_writes_code.mcsm.backend.features.templates.TemplateProvider;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
 @RequestMapping("server")
 public class ServerManagementEndpoints {
-    private static final Supplier<ResponseStatusException> NO_SERVER_EXISTS = () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "no server with that id exists");
     @Autowired
     private ServerManager manager;
     @Autowired

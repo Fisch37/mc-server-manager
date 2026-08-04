@@ -24,8 +24,11 @@ public class ServerProcess {
         this.terminator = terminator;
     }
 
-    public void sendCommand(String line) {
-        throw new NotImplementedException();
+    public void sendCommand(String line) throws IOException {
+        var writer = process.outputWriter();
+        writer.append(line);
+        writer.append('\n');
+        writer.flush();
     }
 
     public Stream<String> getConsoleOut() {
