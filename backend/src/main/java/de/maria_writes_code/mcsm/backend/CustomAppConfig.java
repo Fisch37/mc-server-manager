@@ -29,4 +29,8 @@ public class CustomAppConfig {
     public Path getRuntimeLocation() {
         return getDataLocation().resolve("runtimes");
     }
+
+    public Path getDatabaseLocation() {
+        return getDataLocation().resolve("database.sqlite");
+    }
 }
