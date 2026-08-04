@@ -48,6 +48,7 @@ public record ServerTemplateDefinition(
         Terminator terminator,
         @JacksonXmlElementWrapper(useWrapping = false)
         @JacksonXmlProperty(localName = "argument")
+        @JsonSetter(nulls = Nulls.AS_EMPTY)
         ArrayList<String> arguments
     ) {
         public Executable {
@@ -72,6 +73,7 @@ public record ServerTemplateDefinition(
     public record Overlay(
         @JacksonXmlProperty(isAttribute = true)
         Path location,
+        @JsonSetter(nulls = Nulls.FAIL)
         ArrayList<VersionRangeSpecifier> versions
     ) {
         public Overlay {

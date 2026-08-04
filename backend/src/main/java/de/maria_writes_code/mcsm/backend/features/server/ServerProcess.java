@@ -55,12 +55,13 @@ public class ServerProcess {
     public void stop() throws IOException {
         terminator.terminate(process);
         var onExit = process.onExit();
-        while (true) {
+        while (!onExit.isDone()) {
             try {
                 onExit.get();
             } catch (InterruptedException ignored) {
             } catch (ExecutionException|CancellationException e) {
                 LOGGER.error("Unexpected error while waiting on server termination", e);
+                break;
             }
         }
     }
