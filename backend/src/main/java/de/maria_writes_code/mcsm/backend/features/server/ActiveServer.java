@@ -18,6 +18,8 @@ import de.maria_writes_code.mcsm.backend.features.templates.ServerTemplate;
 import de.maria_writes_code.mcsm.backend.features.templates.TemplateProvider;
 import de.maria_writes_code.mcsm.backend.features.versions.Version;
 import de.maria_writes_code.mcsm.backend.features.versions.VersionRegistry;
+import de.maria_writes_code.mcsm.backend.utils.Observable;
+import de.maria_writes_code.mcsm.backend.utils.ReadOnlyObserver;
 import de.maria_writes_code.mcsm.backend.utils.Utils;
 
 @NullMarked
@@ -31,13 +33,15 @@ public class ActiveServer {
     private Server server;
     @Nullable
     private ServerProcess process;
-    private ServerStatus status;
+    private Observable<ServerStatus> status;
     
     public ActiveServer(Context context, Server server) {
         this.context = context;
         this.server = new Server(server);
         this.id = this.server.getId();
-        this.status = this.server.hasCrashed() ? ServerStatus.Crashed : ServerStatus.Stopped;
+        this.status = new Observable<>(
+            this.server.hasCrashed() ? ServerStatus.Crashed : ServerStatus.Stopped
+        );
     }
 
     public UUID getId() {
@@ -57,6 +61,9 @@ public class ActiveServer {
     }
 
     public ServerStatus getStatus() {
+        return status.get();
+    }
+    public ReadOnlyObserver<ServerStatus> getStatusObserver() {
         return status;
     }
 
@@ -76,7 +83,7 @@ public class ActiveServer {
     }
 
     public synchronized void delete() throws IllegalStateException, IOException {
-        if (process != null && status.isAlive()) {
+        if (process != null && getStatus().isAlive()) {
             throw new IllegalStateException("Cannot delete a running server");
         }
         context.serverManager.drop(this);
@@ -106,9 +113,10 @@ public class ActiveServer {
             .redirectErrorStream(true)
             .start();
         this.process = new ServerProcess(process, Terminator.create(executable.terminator()));
-        status = ServerStatus.Starting;
+        status.set(ServerStatus.Starting);
         
         // TODO: Wait for starting to finish
+        status.set(ServerStatus.Started);
     }
 
     /**
@@ -118,9 +126,9 @@ public class ActiveServer {
      */
     public void stop() throws IllegalStateException, IOException {
         if (process != null) {
-            status = ServerStatus.Stopping;
+            status.set(ServerStatus.Stopping);
             process.stop();
-            status = ServerStatus.Stopped;
+            status.set(ServerStatus.Stopped);
             synchronized (this) {
                 server.setLastExitCode(process.getExitValue());
                 server = context.repo.save(server);

@@ -6,9 +6,9 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.UUID;
 
-import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.http.server.ServletServerHttpResponse;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,9 +21,11 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
 
 import de.maria_writes_code.mcsm.backend.api.websockets.ConsoleSocket;
+import de.maria_writes_code.mcsm.backend.api.websockets.ServerStatusSocket;
 import de.maria_writes_code.mcsm.backend.features.server.ActiveServer;
 import de.maria_writes_code.mcsm.backend.features.server.ServerManager;
 import de.maria_writes_code.mcsm.backend.features.server.ServerStatus;
@@ -43,7 +45,7 @@ public class ServerExecutionEndpoints {
 
     @GetMapping("{id}/status/follow")
     public void getStatusWS(@PathVariable UUID id) {
-        throw new NotImplementedException();
+        performWSHandshake(new ServerStatusSocket(getServer(id)));
     }
 
     @PostMapping("{id}/start")
@@ -112,14 +114,18 @@ public class ServerExecutionEndpoints {
     private void performConsoleHandshake(
         ActiveServer server
     ) throws ResponseStatusException {
+        assertRunningServer(server);
+        performWSHandshake(new ConsoleSocket(server));
+    }
+
+    private void performWSHandshake(WebSocketHandler handler) {
         var reqAttrs = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
         var request = reqAttrs.getRequest();
         var response = reqAttrs.getResponse();
-        assertRunningServer(server);
         new DefaultHandshakeHandler().doHandshake(
             new ServletServerHttpRequest(request),
             new ServletServerHttpResponse(response),
-            new ConsoleSocket(server),
+            handler,
             Map.of()
         );
     }
