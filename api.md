@@ -154,8 +154,7 @@ Get information about a single template.
 ```json
 {
     "server_id": <uuid string>,
-    "line": <string>,
-    "channel": "stdout"|"stderr"
+    "line": <string>
 }
 ```
 

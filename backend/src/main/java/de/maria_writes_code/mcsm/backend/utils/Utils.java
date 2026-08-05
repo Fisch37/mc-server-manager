@@ -1,4 +1,4 @@
-package de.maria_writes_code.mcsm.backend;
+package de.maria_writes_code.mcsm.backend.utils;
 
 import java.util.Collection;
 import java.util.Objects;

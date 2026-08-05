@@ -3,23 +3,32 @@ package de.maria_writes_code.mcsm.backend.api;
 import static de.maria_writes_code.mcsm.backend.api.EndpointConsts.NO_SERVER_EXISTS;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.UUID;
 
 import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.server.ServletServerHttpRequest;
+import org.springframework.http.server.ServletServerHttpResponse;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
 
+import de.maria_writes_code.mcsm.backend.api.websockets.ConsoleSocket;
 import de.maria_writes_code.mcsm.backend.features.server.ActiveServer;
 import de.maria_writes_code.mcsm.backend.features.server.ServerManager;
 import de.maria_writes_code.mcsm.backend.features.server.ServerStatus;
-import org.springframework.web.bind.annotation.RequestBody;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 @RestController
 @RequestMapping("servers")
@@ -42,8 +51,9 @@ public class ServerExecutionEndpoints {
         @PathVariable UUID id,
         @RequestParam boolean follow
     ) throws IOException {
+        var server = getServer(id);
         try {
-            getServer(id).start();
+            server.start();
         } catch (IllegalStateException e) {
             throw new ResponseStatusException(
                 HttpStatus.CONFLICT,
@@ -52,7 +62,7 @@ public class ServerExecutionEndpoints {
             );
         }
         if (follow) {
-            throw new NotImplementedException();
+            performConsoleHandshake(server);
         }
     }
 
@@ -83,8 +93,12 @@ public class ServerExecutionEndpoints {
     }
 
     @GetMapping("{id}/console")
-    public void getConsoleWS(@PathVariable UUID id) {
-        throw new NotImplementedException();
+    public void getConsoleWS(
+        @PathVariable UUID id,
+        HttpServletRequest request,
+        HttpServletResponse response
+    ) {
+        performConsoleHandshake(getServer(id));
     }
 
     @PostMapping("{id}/console")
@@ -92,12 +106,39 @@ public class ServerExecutionEndpoints {
         @PathVariable UUID id,
         @RequestBody String line
     ) throws IOException {
-        getServer(id).sendCommand(line);
+        assertRunningServer(id).sendCommand(line);
+    }
+
+    private void performConsoleHandshake(
+        ActiveServer server
+    ) throws ResponseStatusException {
+        var reqAttrs = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
+        var request = reqAttrs.getRequest();
+        var response = reqAttrs.getResponse();
+        assertRunningServer(server);
+        new DefaultHandshakeHandler().doHandshake(
+            new ServletServerHttpRequest(request),
+            new ServletServerHttpResponse(response),
+            new ConsoleSocket(server),
+            Map.of()
+        );
     }
 
     private ActiveServer getServer(UUID id) throws ResponseStatusException {
         return servers.get(id)
             .orElseThrow(NO_SERVER_EXISTS);
+    }
+
+    private ActiveServer assertRunningServer(UUID id) throws ResponseStatusException {
+        var server = getServer(id);
+        assertRunningServer(server);
+        return server;
+    }
+
+    private void assertRunningServer(ActiveServer server) throws ResponseStatusException {
+        if (!server.getStatus().isAlive()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Server must be running, starting, or stopping");
+        }
     }
 
     public record ServerStatusObject(UUID server_id, ServerStatus status) {

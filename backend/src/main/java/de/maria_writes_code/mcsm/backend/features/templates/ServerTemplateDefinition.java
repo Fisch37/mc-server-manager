@@ -18,7 +18,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
-import de.maria_writes_code.mcsm.backend.Utils;
+import de.maria_writes_code.mcsm.backend.utils.Utils;
 
 @JacksonXmlRootElement(localName = "template")
 @JsonInclude(Include.NON_NULL)

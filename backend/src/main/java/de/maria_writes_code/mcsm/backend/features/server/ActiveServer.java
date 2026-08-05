@@ -13,12 +13,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import de.maria_writes_code.mcsm.backend.AppConfig;
-import de.maria_writes_code.mcsm.backend.Utils;
 import de.maria_writes_code.mcsm.backend.features.runtimes.RuntimeProvider;
 import de.maria_writes_code.mcsm.backend.features.templates.ServerTemplate;
 import de.maria_writes_code.mcsm.backend.features.templates.TemplateProvider;
 import de.maria_writes_code.mcsm.backend.features.versions.Version;
 import de.maria_writes_code.mcsm.backend.features.versions.VersionRegistry;
+import de.maria_writes_code.mcsm.backend.utils.Utils;
 
 @NullMarked
 public class ActiveServer {
@@ -60,6 +60,10 @@ public class ActiveServer {
         return status;
     }
 
+    public @Nullable ServerProcess getProcess() {
+        return process;
+    }
+
     private @Nullable ServerTemplate getTemplate() {
         return context.templateProvider.getTemplate(server.getTemplateId());
     }
@@ -99,6 +103,7 @@ public class ActiveServer {
         args.addAll(runtime.getArguments(getLocation().resolve(executable.file())));
         var process = new ProcessBuilder(args)
             .directory(getLocation().toFile())
+            .redirectErrorStream(true)
             .start();
         this.process = new ServerProcess(process, Terminator.create(executable.terminator()));
         status = ServerStatus.Starting;

@@ -16,8 +16,8 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 
-import de.maria_writes_code.mcsm.backend.Utils;
 import de.maria_writes_code.mcsm.backend.features.versions.VersionRegistry;
+import de.maria_writes_code.mcsm.backend.utils.Utils;
 
 @NullMarked
 public class ServerTemplate {

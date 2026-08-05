@@ -7,11 +7,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import de.maria_writes_code.mcsm.backend.AppConfig;
-import de.maria_writes_code.mcsm.backend.Utils;
 import de.maria_writes_code.mcsm.backend.features.server.ActiveServer;
 import de.maria_writes_code.mcsm.backend.features.server.Server;
 import de.maria_writes_code.mcsm.backend.features.server.ServerManager;
 import de.maria_writes_code.mcsm.backend.features.versions.VersionRegistry;
+import de.maria_writes_code.mcsm.backend.utils.Utils;
 
 @NullMarked
 public class ServerBuilder {
