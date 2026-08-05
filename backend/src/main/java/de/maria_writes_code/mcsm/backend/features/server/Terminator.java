@@ -1,5 +1,6 @@
 package de.maria_writes_code.mcsm.backend.features.server;
 
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +33,11 @@ public sealed interface Terminator permits Terminator.Signal, Terminator.Command
     public record Command(String line) implements Terminator {
         @Override
         public void terminate(Process target) throws IOException {
-            target.getOutputStream().write(line.getBytes());
+            try (var console = new BufferedOutputStream(target.getOutputStream())) {
+                console.write(line.getBytes());
+                console.write(System.lineSeparator().getBytes());
+                console.flush();
+            }
         }
     }
 

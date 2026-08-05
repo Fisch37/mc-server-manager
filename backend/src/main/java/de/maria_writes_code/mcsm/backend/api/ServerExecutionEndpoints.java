@@ -49,7 +49,7 @@ public class ServerExecutionEndpoints {
     @PostMapping("{id}/start")
     public void startServer(
         @PathVariable UUID id,
-        @RequestParam boolean follow
+        @RequestParam(defaultValue = "false") boolean follow
     ) throws IOException {
         var server = getServer(id);
         try {
@@ -101,7 +101,7 @@ public class ServerExecutionEndpoints {
         performConsoleHandshake(getServer(id));
     }
 
-    @PostMapping("{id}/console")
+    @PostMapping(value = "{id}/console", consumes = { MediaType.TEXT_PLAIN_VALUE })
     public void sendConsoleLine(
         @PathVariable UUID id,
         @RequestBody String line

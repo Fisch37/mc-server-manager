@@ -49,7 +49,7 @@ public abstract class PublisherSocket extends TextWebSocketHandler {
         return sessions;
     }
 
-    private void runForAll(WSRunner runner) throws IOExceptionGroup {
+    private synchronized void runForAll(WSRunner runner) throws IOExceptionGroup {
         var exceptions = new ArrayList<IOException>(0);
         sessions.forEach(s -> {
             try {

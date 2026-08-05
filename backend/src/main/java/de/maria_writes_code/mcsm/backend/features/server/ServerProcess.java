@@ -40,7 +40,7 @@ public class ServerProcess {
     public void sendCommand(String line) throws IOException {
         var writer = process.outputWriter();
         writer.append(line);
-        writer.append('\n');
+        writer.append(System.lineSeparator());
         writer.flush();
     }
 
