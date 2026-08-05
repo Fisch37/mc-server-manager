@@ -18,8 +18,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import de.maria_writes_code.mcsm.backend.features.server.ActiveServer;
-import de.maria_writes_code.mcsm.backend.features.server.Server;
 import de.maria_writes_code.mcsm.backend.features.server.ServerManager;
+import de.maria_writes_code.mcsm.backend.features.server.ServerStatus;
 import de.maria_writes_code.mcsm.backend.features.templates.ServerBuilder;
 import de.maria_writes_code.mcsm.backend.features.templates.TemplateProvider;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -101,13 +101,9 @@ public class ServerManagementEndpoints {
         }
     }
 
-    public record ServerObject(UUID id, String name) {
+    public record ServerObject(UUID id, String name, ServerStatus status) {
         public ServerObject(ActiveServer server) {
-            this(server.getServer());
-        }
-
-        public ServerObject(Server server) {
-            this(server.getId(), server.getName());
+            this(server.getId(), server.getServer().getName(), server.getStatus());
         }
     }
     public record ServerBuilderObject(String name, String template, String version) {

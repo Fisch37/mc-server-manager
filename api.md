@@ -129,7 +129,8 @@ Get information about a single template.
 ```json
 {
     "id": <uuid string>,
-    "name": <string>
+    "name": <string>,
+    "status": "stopping"|"stopped"|"crashed"|"starting"|"started"
 }
 ```
 

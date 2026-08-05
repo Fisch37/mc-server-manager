@@ -6,6 +6,14 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 public abstract sealed class Utils permits Utils.Seal {
+    public static String capitalise(String input) {
+        var builder = new StringBuilder(input);
+        if (!input.isEmpty()) {
+            builder.setCharAt(0, Character.toUpperCase(input.charAt(0)));
+        }
+        return builder.toString();
+    }
+
     public static <T> int indexOf(Collection<T> collection, Predicate<T> predicate) {
         int i = 0;
         for (T el : collection) {
