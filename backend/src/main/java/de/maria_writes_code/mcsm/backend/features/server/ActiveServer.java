@@ -128,7 +128,7 @@ public class ActiveServer {
         if (process != null) {
             status.set(ServerStatus.Stopping);
             process.stop();
-            status.set(ServerStatus.Stopped);
+            status.set(Utils.isExitCodeOk(process.getExitValue()) ? ServerStatus.Stopped : ServerStatus.Crashed);
             synchronized (this) {
                 server.setLastExitCode(process.getExitValue());
                 server = context.repo.save(server);

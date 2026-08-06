@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -33,7 +34,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 @RestController
-@RequestMapping("servers")
+@RequestMapping("server")
 public class ServerExecutionEndpoints {
     @Autowired
     private ServerManager servers;
@@ -49,6 +50,7 @@ public class ServerExecutionEndpoints {
     }
 
     @PostMapping("{id}/start")
+    @ResponseStatus(code = HttpStatus.NO_CONTENT)
     public void startServer(
         @PathVariable UUID id,
         @RequestParam(defaultValue = "false") boolean follow
@@ -69,6 +71,7 @@ public class ServerExecutionEndpoints {
     }
 
     @PostMapping("{id}/stop")
+    @ResponseStatus(code = HttpStatus.NO_CONTENT)
     public void stopServer(@PathVariable UUID id) throws IOException {
         try {
             getServer(id).stop();
@@ -82,6 +85,7 @@ public class ServerExecutionEndpoints {
     }
 
     @PostMapping("{id}/restart")
+    @ResponseStatus(code = HttpStatus.NO_CONTENT)
     public void restartServer(@PathVariable UUID id) throws IOException {
         try {
             getServer(id).restart();
@@ -104,6 +108,7 @@ public class ServerExecutionEndpoints {
     }
 
     @PostMapping(value = "{id}/console", consumes = { MediaType.TEXT_PLAIN_VALUE })
+    @ResponseStatus(code = HttpStatus.NO_CONTENT)
     public void sendConsoleLine(
         @PathVariable UUID id,
         @RequestBody String line

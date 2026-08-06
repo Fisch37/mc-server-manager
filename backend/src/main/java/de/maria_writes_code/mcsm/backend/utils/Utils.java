@@ -49,6 +49,10 @@ public abstract sealed class Utils permits Utils.Seal {
             Objects.requireNonNull(o);
         }
     }
+
+    public static boolean isExitCodeOk(int exitCode) {
+        return exitCode == 0;
+    }
     
     private static final class Seal extends Utils { }
 }

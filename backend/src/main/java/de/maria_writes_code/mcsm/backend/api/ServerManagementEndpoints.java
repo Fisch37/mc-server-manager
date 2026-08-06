@@ -8,12 +8,14 @@ import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -65,6 +67,7 @@ public class ServerManagementEndpoints {
     }
 
     @DeleteMapping("{id}")
+    @ResponseStatus(code = HttpStatus.NO_CONTENT)
     public void deleteServer(@PathVariable UUID id) {
         var server = manager.get(id).orElse(null);
         if (server == null) {
@@ -88,7 +91,8 @@ public class ServerManagementEndpoints {
         }
     }
 
-    @PutMapping("{id}/name")
+    @PutMapping(value = "{id}/name", consumes = { MediaType.TEXT_PLAIN_VALUE })
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void renameServer(
         @PathVariable UUID id,
         @RequestBody String newName
