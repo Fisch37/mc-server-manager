@@ -112,7 +112,11 @@ public class ActiveServer {
             .directory(getLocation().toFile())
             .redirectErrorStream(true)
             .start();
-        this.process = new ServerProcess(process, Terminator.create(executable.terminator()));
+        this.process = new ServerProcess(
+            process,
+            Terminator.create(executable.terminator()),
+            exitValue -> status.set(Utils.isExitCodeOk(exitValue) ? ServerStatus.Stopped : ServerStatus.Crashed)
+        );
         status.set(ServerStatus.Starting);
         
         // TODO: Wait for starting to finish

@@ -28,13 +28,21 @@ public class ServerProcess {
     private Event<@Nullable String> consoleEvent;
     @NotNull
     private ConsoleHandler thread;
+    @NotNull
+    private Thread waiterThread;
+    @Nullable
+    private Consumer<Integer> onExit;
 
-    public ServerProcess(Process process, Terminator terminator) {
+    public ServerProcess(Process process, Terminator terminator, Consumer<Integer> onExit) {
         this.process = process;
         this.terminator = terminator;
         this.consoleEvent = new Event<>();
+        this.onExit = onExit;
         thread = new ConsoleHandler(process, consoleEvent::push);
         thread.start();
+        waiterThread = Thread.ofVirtual()
+            .name("WaitOnExit")
+            .start(this::waitOnExit);
     }
 
     public void sendCommand(String line) throws IOException {
@@ -91,6 +99,16 @@ public class ServerProcess {
         }
     }
 
+    private void waitOnExit() {
+        try {
+            onExit.accept(process.onExit().get().exitValue());
+        } catch (InterruptedException e) {
+            LOGGER.info("WaitOnExit interrupted while waiting", e);
+        } catch (ExecutionException e) {
+            LOGGER.error("Some error occurred while awaiting server exit", e);
+        }
+    }
+
     private static class ConsoleHandler extends Thread {
         private final Process target;
         private final Consumer<String> onLine;
@@ -117,6 +135,29 @@ public class ServerProcess {
                 if (line == null) {
                     break;
                 }
+            }
+        }
+    }
+
+    private static class WaitOnExit extends Thread {
+        private final Process target;
+        private final Consumer<Integer> onExit;
+
+        public WaitOnExit(Process target, Consumer<Integer> onExit) {
+            this.target = target;
+            this.onExit = onExit;
+            super("WaitOnExit");
+            setDaemon(true);
+        }
+
+        @Override
+        public void run() {
+            try {
+                onExit.accept(target.onExit().get().exitValue());
+            } catch (InterruptedException e) {
+                LOGGER.info("WaitOnExit interrupted while waiting", e);
+            } catch (ExecutionException e) {
+                LOGGER.error("Some error occurred while awaiting server exit", e);
             }
         }
     }
