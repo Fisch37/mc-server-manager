@@ -1,11 +1,16 @@
+import { BrowserRouter, Route, Routes } from 'react-router';
 import './App.css';
+import ServerList from './ServerList';
+import ServerManagement from './ServerManagement';
 
 const App = () => {
   return (
-    <div className="content">
-      <h1>Rsbuild with React</h1>
-      <p>Start building amazing things with Rsbuild.</p>
-    </div>
+    <BrowserRouter>
+    <Routes>
+      <Route path="/" element={<ServerList />} />
+      <Route path="/server/:server_id" element={<ServerManagement />} />
+    </Routes>
+    </BrowserRouter>
   );
 };
 
