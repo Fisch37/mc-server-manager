@@ -76,6 +76,7 @@ public class ServerManager implements InitializingBean {
     }
 
     public void add(ActiveServer server) {
+        repo.save(server.getServer());
         var oldServer = servers.put(server.getId(), server);
         if (oldServer != null) {
             LOGGER.warn(

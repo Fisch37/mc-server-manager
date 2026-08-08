@@ -13,7 +13,7 @@ import io.swagger.v3.oas.annotations.info.Info;
 
 @SpringBootApplication(scanBasePackages = "de.maria_writes_code.mcsm.backend")
 @EntityScan("de.maria_writes_code.mcsm.backend")
-@EnableJpaRepositories("de.maria_writes_code.mcsm.backend")
+@EnableJpaRepositories(value = "de.maria_writes_code.mcsm.backend", considerNestedRepositories = true)
 @RestController
 @OpenAPIDefinition(info = @Info(title = "MC Server Manager API"))
 public class App {

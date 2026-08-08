@@ -1,8 +1,8 @@
 import { Button, Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router";
-import { getServerInfo, isStatusAlive, restartServer, sendConsole as sendConsoleAPI, renameServer as renameServerAPI, deleteServer as deleteServerAPI, startServer, stopServer, openServerStatusSocket, openConsoleSocket, openConsoleSocketSync } from "./api";
-import type { ConsoleLine, Server, StatusValue, TypedSocket } from "./api";
+import { getServerInfo, isStatusAlive, restartServer, sendConsole as sendConsoleAPI, renameServer as renameServerAPI, deleteServer as deleteServerAPI, startServer, stopServer, openServerStatusSocket, openConsoleSocket, openConsoleSocketSync } from "./server_api";
+import type { ConsoleBacklog, ConsoleLine, Server, StatusValue, TypedSocket } from "./server_api";
 
 const WS_CLOSING_STATES: Array<number> = [WebSocket.CLOSING, WebSocket.CLOSED];
 
@@ -15,13 +15,14 @@ const ServerManagement = () => {
     const [server_status, set_server_status] = useState<StatusValue|null>(null);
     
     const [server_new_name, set_server_new_name] = useState("");
-    const console_socket = useRef<TypedSocket<ConsoleLine>|null>(null);
+    const console_socket = useRef<TypedSocket<ConsoleLine|ConsoleBacklog>|null>(null);
 
     function fetchAndSetServerInfo() {
         getServerInfo(server_id)
             .then(value => {
                 set_server_info(value);
                 set_server_new_name(value.name);
+                set_server_status(value.status);
             })
             .catch(e => console.error(`Failed to get server info ${e}`))
     }
@@ -39,7 +40,15 @@ const ServerManagement = () => {
         if (isStatusAlive(server_status)) {
             if (console_socket.current == null || WS_CLOSING_STATES.includes(console_socket.current.ws.readyState)) {
                 console_socket.current = openConsoleSocketSync(server_id);
-                console_socket.current.addOnMessage(line => set_console_lines(prev => [...prev, line.line]));
+                console_socket.current.addOnMessage(message => {
+                    if ("line" in message) {
+                        set_console_lines(prev => [...prev, message.line])
+                    } else if ("backlog" in message) {
+                        set_console_lines([...message.backlog]);
+                    } else {
+                        console.warn("Received unexpected message: " + message);
+                    }
+                });
             }
         }
     }, [server_status]);

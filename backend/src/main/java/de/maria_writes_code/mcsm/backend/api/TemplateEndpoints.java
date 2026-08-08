@@ -20,7 +20,7 @@ public class TemplateEndpoints {
     @Autowired
     private TemplateProvider templates;
 
-    @GetMapping("/")
+    @GetMapping("")
     public Stream<TemplateSummaryObject> getTemplateSummary() {
         return templates.getTemplates()
             .map(TemplateSummaryObject::new);
