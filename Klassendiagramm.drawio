@@ -1,6 +1,6 @@
 <mxfile host="Electron">
   <diagram name="Page-1" id="W9Kmmc40F6Gz2fNp_sXg">
-    <mxGraphModel dx="854" dy="603" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="934" dy="659" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -90,7 +90,7 @@
         <mxCell id="cr5Isa4fbqzMjlPj2a_2-18" parent="cr5Isa4fbqzMjlPj2a_2-16" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" value="" vertex="1">
           <mxGeometry height="8" width="290" y="26" as="geometry" />
         </mxCell>
-        <mxCell id="cr5Isa4fbqzMjlPj2a_2-19" parent="cr5Isa4fbqzMjlPj2a_2-16" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="+ sendCommand(line: String)&lt;div&gt;+ getConsoleOut(): Stream&amp;lt;String&amp;gt;&lt;/div&gt;&lt;div&gt;+ getStatus(): ServerStatus&lt;/div&gt;&lt;div&gt;+ getConsoleEvent(): ReadOnlyEvent&amp;lt;String&amp;gt;&lt;/div&gt;" vertex="1">
+        <mxCell id="cr5Isa4fbqzMjlPj2a_2-19" parent="cr5Isa4fbqzMjlPj2a_2-16" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="+ sendCommand(line: String)&lt;div&gt;+ getStatus(): ServerStatus&lt;/div&gt;&lt;div&gt;+ getConsoleEvent(): ReadOnlyEvent&amp;lt;String&amp;gt;&lt;/div&gt;&lt;div&gt;+ getConsoleState(): List&amp;lt;String&amp;gt;&lt;/div&gt;" vertex="1">
           <mxGeometry height="66" width="290" y="34" as="geometry" />
         </mxCell>
         <mxCell id="cr5Isa4fbqzMjlPj2a_2-43" edge="1" parent="1" source="cr5Isa4fbqzMjlPj2a_2-39" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="cr5Isa4fbqzMjlPj2a_2-119">

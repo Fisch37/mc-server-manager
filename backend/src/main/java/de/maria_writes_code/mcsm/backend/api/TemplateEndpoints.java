@@ -33,6 +33,7 @@ public class TemplateEndpoints {
 
     public record TemplateSummaryObject(
         String id,
+        String name,
         boolean has_mods,
         List<String> versions
     ) {
@@ -43,6 +44,7 @@ public class TemplateEndpoints {
         public TemplateSummaryObject(ServerTemplateDefinition template) {
             this(
                 template.id(),
+                template.name(),
                 false,
                 template.versions()
                     .stream()

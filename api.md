@@ -173,6 +173,7 @@ Get information about a single template.
 ```json
 {
     "id": <cleartext string>,
+    "name": <cleartext string>,
     "has_mods": <boolean>,
     "versions": [
         <version string>*
