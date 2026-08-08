@@ -3,42 +3,47 @@ package de.maria_writes_code.mcsm.backend.features.server;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.NotImplementedException;
-import org.jspecify.annotations.Nullable;
+import org.jspecify.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.maria_writes_code.mcsm.backend.utils.Event;
 import de.maria_writes_code.mcsm.backend.utils.ReadOnlyEvent;
-import jakarta.validation.constraints.NotNull;
 
 public class ServerProcess {
     private static final Logger LOGGER = LoggerFactory.getLogger("Server");
 
-    @NotNull
+    @NonNull
     private Process process;
-    @NotNull
+    @NonNull
     private Terminator terminator;
-    @NotNull
+    @NonNull
     private Event<@Nullable String> consoleEvent;
-    @NotNull
+    @NonNull
     private ConsoleHandler thread;
-    @NotNull
+    @NonNull
     private Thread waiterThread;
     @Nullable
     private Consumer<Integer> onExit;
+    @NonNull
+    private List<String> consoleHistory;
 
     public ServerProcess(Process process, Terminator terminator, Consumer<Integer> onExit) {
         this.process = process;
         this.terminator = terminator;
         this.consoleEvent = new Event<>();
         this.onExit = onExit;
-        thread = new ConsoleHandler(process, consoleEvent::push);
+        consoleHistory = new ArrayList<>();
+        thread = new ConsoleHandler(process, new ConsoleHandler.Context(consoleEvent::push, consoleHistory));
         thread.start();
         waiterThread = Thread.ofVirtual()
             .name("WaitOnExit")
@@ -55,6 +60,13 @@ public class ServerProcess {
     @Deprecated
     public Stream<String> getConsoleOut() {
         throw new NotImplementedException();
+    }
+
+    /**
+     * Returns an unmodifiable view of the console output.
+     */
+    public List<String> getConsoleState() {
+        return Collections.unmodifiableList(consoleHistory);
     }
 
     @Deprecated
@@ -111,12 +123,12 @@ public class ServerProcess {
 
     private static class ConsoleHandler extends Thread {
         private final Process target;
-        private final Consumer<String> onLine;
+        private final Context context;
 
-        public ConsoleHandler(Process target, Consumer<String> onLine) {
+        public ConsoleHandler(Process target, Context context) {
             super("ConsoleHandler");
             this.target = target;
-            this.onLine = onLine;
+            this.context = context;
             setDaemon(true);
         }
 
@@ -131,34 +143,15 @@ public class ServerProcess {
                     LOGGER.error("I/O error while reading process output", e);
                     continue;
                 }
-                onLine.accept(line);
+                context.onLine.accept(line);
+                context.history.add(line);
+
                 if (line == null) {
                     break;
                 }
             }
         }
-    }
 
-    private static class WaitOnExit extends Thread {
-        private final Process target;
-        private final Consumer<Integer> onExit;
-
-        public WaitOnExit(Process target, Consumer<Integer> onExit) {
-            this.target = target;
-            this.onExit = onExit;
-            super("WaitOnExit");
-            setDaemon(true);
-        }
-
-        @Override
-        public void run() {
-            try {
-                onExit.accept(target.onExit().get().exitValue());
-            } catch (InterruptedException e) {
-                LOGGER.info("WaitOnExit interrupted while waiting", e);
-            } catch (ExecutionException e) {
-                LOGGER.error("Some error occurred while awaiting server exit", e);
-            }
-        }
+        private record Context(Consumer<String> onLine, List<String> history) { }
     }
 }

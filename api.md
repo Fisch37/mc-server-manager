@@ -119,7 +119,7 @@ Get information about a single template.
 
 ## Console Socket
 ### Sends
-- The backlog as a list of [console line objects](#console-line-object)
+- A [console backlog object](#console-backlog-object)
     - when the connection is first made.
 - A [console line object](#console-line-object)
     - when the server has written a new line into the console.
@@ -156,6 +156,16 @@ Get information about a single template.
 {
     "server_id": <uuid string>,
     "line": <string>
+}
+```
+
+### Console Backlog Object
+```json
+{
+    "server_id": <uuid string>,
+    "backlog": [
+        <string>*
+    ]
 }
 ```
 

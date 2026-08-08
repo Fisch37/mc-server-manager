@@ -4,6 +4,9 @@ import java.util.Collection;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
+
+import org.jspecify.annotations.Nullable;
 
 public abstract sealed class Utils permits Utils.Seal {
     public static String capitalise(String input) {
@@ -47,6 +50,17 @@ public abstract sealed class Utils permits Utils.Seal {
     public static void requireNonNull(Object... objects) {
         for (var o : objects) {
             Objects.requireNonNull(o);
+        }
+    }
+
+    public static <T, E extends Throwable> T throwIfNull(
+        @Nullable T value,
+        Supplier<E> errorSupplier
+    ) throws E {
+        if (value == null) {
+            throw errorSupplier.get();
+        } else {
+            return value;
         }
     }
 

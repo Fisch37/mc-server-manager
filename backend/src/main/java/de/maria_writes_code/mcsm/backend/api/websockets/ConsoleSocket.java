@@ -1,5 +1,6 @@
 package de.maria_writes_code.mcsm.backend.api.websockets;
 
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -11,6 +12,7 @@ import org.springframework.web.socket.WebSocketSession;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import de.maria_writes_code.mcsm.backend.api.websockets.abc.JsonPublisherSocket;
 import de.maria_writes_code.mcsm.backend.features.server.ActiveServer;
+import de.maria_writes_code.mcsm.backend.utils.Utils;
 
 public class ConsoleSocket extends JsonPublisherSocket implements Consumer<String> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ConsoleSocket.class);
@@ -30,7 +32,11 @@ public class ConsoleSocket extends JsonPublisherSocket implements Consumer<Strin
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         super.afterConnectionEstablished(session);
 
-        // TODO: Send current console state
+        var backlog = Utils.throwIfNull(
+            server.getProcess(),
+            () -> new IllegalStateException("Server Process not available at socket opened")
+        ).getConsoleState();
+        sendMessage(session, new ConsoleBacklogObject(server.getId(), backlog));
     }
 
     @Override
@@ -68,4 +74,5 @@ public class ConsoleSocket extends JsonPublisherSocket implements Consumer<Strin
     }
 
     private record ConsoleLineObject(UUID server_id, String line) { }
+    private record ConsoleBacklogObject(UUID server_id, List<String> backlog) { }
 }
