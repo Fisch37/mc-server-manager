@@ -1,7 +1,10 @@
 package de.maria_writes_code.mcsm.backend;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -39,5 +42,16 @@ public class AppConfig {
 
     public Path getDatabaseLocation() {
         return getDataLocation().resolve("database.sqlite");
+    }
+
+    public void setup() throws IOException {
+        for (var dir : List.of(
+            getServerLocation(),
+            getTemplateLocation(),
+            getRuntimeLocation(),
+            getVanillaJarLocation()
+        )) {
+            Files.createDirectories(dir);
+        }
     }
 }
