@@ -37,11 +37,11 @@ public class VanillaVersion implements Version {
 
     public VanillaDetails fetchVersionDetailsConcrete() throws IOException {
         var tree = MAPPER.readTree(metadataUrl.openStream());
-        return new VanillaDetails(tree);
+        return new VanillaDetails(id, tree);
     }
 
-    public record VanillaDetails(int javaVersion, URL serverJar) implements Details {
-        private VanillaDetails(JsonNode details) {
+    public record VanillaDetails(String versionId, int javaVersion, URL serverJar, String serverSha1) implements Details {
+        private VanillaDetails(String versionId, JsonNode details) {
             var javaVersion = details.get("javaVersion");
             if (javaVersion == null) {
                 throw new NotImplementedException("TODO: Throw a good exception here");
@@ -51,10 +51,9 @@ public class VanillaVersion implements Version {
                 throw new NotImplementedException("TODO: Throw a good exception here");
             }
 
-            var urlString = details.get("downloads")
-                .get("server")
-                .get("url")
-                .asText();
+            var download = details.get("downloads")
+                .get("server");
+            var urlString = download.get("url").asText();
             if (urlString.isEmpty()) {
                 throw new NotImplementedException("TODO: Throw a good exception here");
             }
@@ -64,7 +63,13 @@ public class VanillaVersion implements Version {
             } catch (URISyntaxException | MalformedURLException e) {
                 throw new NotImplementedException("TODO: Throw a good exception here", e);
             }
-            this(majorVersion.asInt(), url);
+            
+            var sha1 = download.get("sha1").asText();
+            if (sha1.isEmpty()) {
+                throw new NotImplementedException("TODO: Throw a good exception here");
+            }
+
+            this(versionId, majorVersion.asInt(), url, sha1);
         }
     }
 }

@@ -33,6 +33,10 @@ public class AppConfig {
         return getDataLocation().resolve("runtimes");
     }
 
+    public Path getVanillaJarLocation() {
+        return getDataLocation().resolve("vanilla-jars");
+    }
+
     public Path getDatabaseLocation() {
         return getDataLocation().resolve("database.sqlite");
     }

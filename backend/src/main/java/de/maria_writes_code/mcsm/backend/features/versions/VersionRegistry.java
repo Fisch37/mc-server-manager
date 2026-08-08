@@ -1,21 +1,29 @@
 package de.maria_writes_code.mcsm.backend.features.versions;
 
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.io.IOUtils;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.JsonNode;
+
+import de.maria_writes_code.mcsm.backend.AppConfig;
+
 import static de.maria_writes_code.mcsm.backend.App.LOGGER;
 
 /**
@@ -39,6 +47,10 @@ public class VersionRegistry implements InitializingBean {
     }
 
     private ConcurrentMap<String, VanillaVersion> versions;
+    @Autowired
+    private AppConfig config;
+    @Autowired
+    private ServerJarRepository.Vanilla vanillaJars;
 
     public VersionRegistry() { }
 
@@ -72,18 +84,52 @@ public class VersionRegistry implements InitializingBean {
      * Download the executable for the specified version.
      * @param versionId The version to download for
      * @param destination The stream into which the executable is downloaded.
-     * @return The download process
      */
     public void getExecutable(String versionId, OutputStream destination) throws IOException {
         var version = versions.get(versionId);
         if (version == null) {
             throw new IllegalArgumentException("Version does not exist");
         }
-        var url = version.fetchVersionDetailsConcrete().serverJar();
-        try(var data = url.openStream()) {
-            IOUtils.copy(data, destination);
-            // data.transferTo(destination);
+        var executablePath = ensureExecutable(version);
+        Files.copy(executablePath, destination);
+    }
+
+    private Path ensureExecutable(VanillaVersion version) throws IOException {
+        @Nullable Path path = vanillaJars.findByVersionId(version.id())
+            .map(s -> executablePath(s.getSha1()))
+            .orElse(null)
+            ;
+        if (path == null || !path.toFile().isFile()) {
+            path = ensureExecutable(version.fetchVersionDetailsConcrete());
         }
+        return path;
+    }
+    private Path ensureExecutable(VanillaVersion.VanillaDetails details) throws IOException {
+        var path = executablePath(details);
+        if (!path.toFile().isFile()) {
+            fetchExecutable(details);
+        }
+        return path;
+    }
+
+    private Path fetchExecutable(VanillaVersion.VanillaDetails details) throws IOException {
+        var destination = executablePath(details);
+        var url = details.serverJar();
+        try(
+            var file = new BufferedOutputStream(new FileOutputStream(destination.toFile()));
+            var data = url.openStream();
+        ) {
+            IOUtils.copy(data, file);
+        }
+        vanillaJars.save(new ServerJar.Vanilla(details.versionId(), details.serverSha1()));
+        return destination;
+    }
+
+    private Path executablePath(VanillaVersion.VanillaDetails details) {
+        return executablePath(details.serverSha1());
+    }
+    private Path executablePath(String sha1) {
+        return config.getVanillaJarLocation().resolve(sha1 + ".jar");
     }
 
     private record ManifestVersion(String id, URL url) {
