@@ -13,22 +13,25 @@ import org.springframework.web.bind.annotation.RestController;
 import de.maria_writes_code.mcsm.backend.features.templates.ServerTemplate;
 import de.maria_writes_code.mcsm.backend.features.templates.ServerTemplateDefinition;
 import de.maria_writes_code.mcsm.backend.features.templates.TemplateProvider;
+import de.maria_writes_code.mcsm.backend.features.versions.VersionRegistry;
 
 @RestController
 @RequestMapping("templates")
 public class TemplateEndpoints {
     @Autowired
     private TemplateProvider templates;
+    @Autowired
+    private VersionRegistry versions;
 
     @GetMapping("")
     public Stream<TemplateSummaryObject> getTemplateSummary() {
         return templates.getTemplates()
-            .map(TemplateSummaryObject::new);
+            .map(t -> new TemplateSummaryObject(t, versions));
     }
 
     @GetMapping("{id}")
     public TemplateSummaryObject getTemplate(@PathVariable String id) {
-        return new TemplateSummaryObject(templates.getTemplate(id));
+        return new TemplateSummaryObject(templates.getTemplate(id), versions);
     }
 
     public record TemplateSummaryObject(
@@ -37,17 +40,17 @@ public class TemplateEndpoints {
         boolean has_mods,
         List<String> versions
     ) {
-        public TemplateSummaryObject(ServerTemplate template) {
-            this(template.getDefinition());
+        public TemplateSummaryObject(ServerTemplate template, VersionRegistry versions) {
+            this(template.getDefinition(), versions);
         }
 
-        public TemplateSummaryObject(ServerTemplateDefinition template) {
+        public TemplateSummaryObject(ServerTemplateDefinition template, VersionRegistry versions) {
             this(
                 template.id(),
                 template.name(),
                 false,
                 template.versions()
-                    .stream()
+                    .getAllVersions(versions)
                     .map(v -> v.id())
                     .collect(Collectors.toList())
             );

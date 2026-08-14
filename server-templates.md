@@ -57,10 +57,14 @@ The following is an annotated example structure for a `template.xml` file.
         <argument>-Xms4G</argument>
     </executable>
     <!--
-        A list of supported versions.
+        The supported versions.
+        If the "src" property is specified, it must refer to a recognised version source
+            (currently only "vanilla") is allowed.
+        Additionally to the version source (if present),
+            a manual list of versions may be provided.
         If a listed version does not exist when the template is loaded, it will be ignored.
     -->
-    <versions>
+    <versions src="vanilla">
         <version id="1.21.11" />
         <version id="1.21.10" />
         <!-- etc -->

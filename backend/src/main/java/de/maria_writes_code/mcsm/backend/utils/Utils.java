@@ -5,6 +5,7 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import org.jspecify.annotations.Nullable;
 
@@ -39,12 +40,27 @@ public abstract sealed class Utils permits Utils.Seal {
         return collection.stream().filter(predicate).findAny().isPresent();
     }
 
+    public static <T> boolean contains(Stream<T> stream, Predicate<T> predicate) {
+        return stream.filter(predicate).findAny().isPresent();
+    }
+
     public static <T, V> boolean contains(
         Collection<T> collection,
         Function<T, V> mapper,
         V comparer
     ) {
         return contains(collection, t -> mapper.apply(t).equals(comparer));
+    }
+
+    public static <T, V> boolean contains(
+        Stream<T> stream,
+        Function<T, V> mapper,
+        V comparer
+    ) {
+        return stream.map(mapper)
+            .filter(v -> Objects.equals(comparer, v))
+            .findAny()
+            .isPresent();
     }
     
     public static void requireNonNull(Object... objects) {

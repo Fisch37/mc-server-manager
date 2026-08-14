@@ -30,7 +30,13 @@ public class ServerBuilder {
         return this;
     }
     public ServerBuilder setVersion(String versionId) throws IOException {
-        if (!Utils.contains(template.getDefinition().versions(), v -> v.id(), versionId)) {
+        if (!Utils.contains(
+            template.getDefinition()
+                .versions()
+                .getAllVersions(context.versionRegistry),
+            v -> v.id(),
+            versionId
+        )) {
             throw new IllegalArgumentException(
                 "Template %s does not support version %s".formatted(
                     template.getDefinition().name(),

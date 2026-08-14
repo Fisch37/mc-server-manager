@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
 import org.jspecify.annotations.NullMarked;
@@ -87,7 +88,12 @@ public class ServerTemplate {
             if (
                 overlay.versions()
                     .stream()
-                    .anyMatch(v -> v.contains(versionId, definition.versions()))
+                    .anyMatch(v -> v.contains(
+                        versionId,
+                        definition.versions()
+                            .getAllVersions(context.versionRegistry)
+                            .collect(Collectors.toList())
+                    ))
             ) {
                var overlay_src = getOverlayLocation().resolve(overlay.location());
                FileUtils.copyDirectory(overlay_src.toFile(), path.toFile());

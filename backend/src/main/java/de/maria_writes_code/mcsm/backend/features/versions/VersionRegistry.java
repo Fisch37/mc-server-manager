@@ -10,6 +10,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -36,7 +37,7 @@ import static de.maria_writes_code.mcsm.backend.App.LOGGER;
  *  No guarantees are made about the format of valid version ids.
  */
 @Service @Scope("singleton")
-public class VersionRegistry implements InitializingBean {
+public class VersionRegistry implements InitializingBean, VersionProvider {
     private static final URL MANIFEST_URL;
     static {
         try {
@@ -62,6 +63,7 @@ public class VersionRegistry implements InitializingBean {
         if (!versionsRaw.isArray()) {
             throw new IOException("Malformed manifest: Expected a versions array");
         }
+        // TODO: Replace this with a map type that is concurrent and sorted
         versions = new ConcurrentHashMap<>();
         for (var version : versionsRaw) {
             var manifest = VanillaVersion.MAPPER.treeToValue(version, ManifestVersion.class);
@@ -136,5 +138,15 @@ public class VersionRegistry implements InitializingBean {
         public VanillaVersion toVanilla() {
             return new VanillaVersion(id, url);
         }
+    }
+
+    @Override
+    public VersionSource getIdentifier() {
+        return VersionSource.Vanilla;
+    }
+
+    @Override
+    public Collection<? extends Version> getVersions() {
+        return versions.values();
     }
 }

@@ -2,7 +2,9 @@ package de.maria_writes_code.mcsm.backend.features.templates;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
@@ -18,6 +20,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
+import de.maria_writes_code.mcsm.backend.features.versions.VersionProvider;
+import de.maria_writes_code.mcsm.backend.features.versions.VersionSource;
 import de.maria_writes_code.mcsm.backend.utils.Utils;
 
 @JacksonXmlRootElement(localName = "template")
@@ -31,7 +35,7 @@ public record ServerTemplateDefinition(
     boolean isAbstract,
     @Nullable Parent parent,
     Executable executable,
-    List<Version> versions,
+    Versions versions,
     @JsonSetter(nulls = Nulls.AS_EMPTY)
     List<Overlay> overlays
 ) {
@@ -89,7 +93,7 @@ public record ServerTemplateDefinition(
     public static interface VersionRangeSpecifier {
         boolean contains(
             String versionId,
-            List<ServerTemplateDefinition.Version> reference
+            Collection<ServerTemplateDefinition.Version> reference
         );
     }
 
@@ -99,7 +103,7 @@ public record ServerTemplateDefinition(
         String id
     ) implements VersionRangeSpecifier {
         @Override
-        public boolean contains(String versionId, List<Version> reference) {
+        public boolean contains(String versionId, Collection<Version> reference) {
             return this.id.equals(versionId);
         }
     }
@@ -112,7 +116,7 @@ public record ServerTemplateDefinition(
         String last
     ) implements VersionRangeSpecifier {
         @Override
-        public boolean contains(String versionId, List<Version> reference) {
+        public boolean contains(String versionId, Collection<Version> reference) {
             var firstIdx = Utils.indexOf(reference, v -> v.id, first);
             var lastIdx = Utils.indexOf(reference, v -> v.id, last);
             var checkIdx = Utils.indexOf(reference, v -> v.id, versionId);
@@ -120,6 +124,31 @@ public record ServerTemplateDefinition(
             return checkIdx >= firstIdx && checkIdx <= lastIdx;
         }
         
+    }
+
+    public record Versions(
+        @JacksonXmlProperty(isAttribute = true)
+        @Nullable
+        VersionSource src,
+        @JacksonXmlElementWrapper(useWrapping = false)
+        @JsonSetter(nulls = Nulls.AS_EMPTY)
+        List<Version> explicitVersions
+    ) {
+        public Stream<Version> getAllVersions(VersionProvider provider) {
+            if (!provider.getIdentifier().equals(src)) {
+                throw new IllegalStateException(
+                    "Received incorrect version provider. Expected "
+                    + src + " got " + provider.getIdentifier()
+                );
+            }
+            return Stream.concat(
+                provider.getVersions()
+                    .stream()
+                    .map(canonicalVersion -> new Version(canonicalVersion.id()))
+                ,
+                explicitVersions.stream()
+            );  
+        }
     }
 
     private static void checkDoesNotEscapeRoot(Path path, String fieldName) {
