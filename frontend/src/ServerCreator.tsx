@@ -1,4 +1,4 @@
-import { Button, Field, Input, Label, Select } from "@headlessui/react";
+import { Button, TextField, Input, Label, Select, ListBox, FieldError } from "@heroui/react";
 import { useEffect, useState } from "react";
 import { getTemplates, type TemplateSummary } from "./template_api";
 import { createServer as createServerAPI } from "./server_api";
@@ -31,41 +31,83 @@ const ServerCreator = () => {
     return (
         <div>
             <form onSubmit={e => { e.preventDefault(); createServer() }}>
-                <Field>
+                <TextField isInvalid={chosen_name.length < 1}>
                     <Label>Name</Label>
-                    <Input value={chosen_name} onChange={(e) => set_chosen_name(e.target.value)}></Input>
-                </Field>
-                <Field>
-                    <Label>Template</Label>
+                    <Input
+                        value={chosen_name}
+                        onChange={(e) => set_chosen_name(e.target.value)}
+                        minLength={1}
+                    />
+                    <FieldError>Server must have a name</FieldError>
+                </TextField>
+                <TextField>
                     <Select
                         name="template"
                         value={chosen_template}
-                        onChange={e => set_chosen_template(e.target.value)}
+                        onChange={key => set_chosen_template(key.toString())}
+                        placeholder="Please select a template"
                     >
-                        <option value="">Please select a template</option>
-                        {templates.map(template => {
-                            console.log(template);
-                            return (
-                                <option key={template.id} value={template.id}>{template.name}</option>
-                            );
-                        })}
+                        <Label>Template</Label>
+                        <Select.Trigger>
+                            <Select.Value />
+                            <Select.Indicator />
+                        </Select.Trigger>
+                        <Select.Popover>
+                            <ListBox>
+                                {templates.map(template => {
+                                    console.log(template);
+                                    return (
+                                        // <option key={template.id} value={template.id}>{template.name}</option>
+                                        <ListBox.Item
+                                            id={template.id}
+                                            textValue={template.name}
+                                        >
+                                            {template.name}
+                                            <ListBox.ItemIndicator />
+                                        </ListBox.Item>
+                                    );
+                                })}
+                            </ListBox>
+                        </Select.Popover>
                     </Select>
-                </Field>
-                <Field>
-                    <Label>Version</Label>
+                </TextField>
+                <TextField>
                     <Select
                         name="version"
                         value={chosen_version}
-                        onChange={e => set_chosen_version(e.target.value)}
-                        disabled={chosen_template==""}
+                        onChange={key => set_chosen_version(key.toString())}
+                        isDisabled={chosen_template==""}
+                        placeholder="Please select a version"
                     >
-                        <option value="">Please select a version</option>
-                        {getTemplate(chosen_template)?.versions.map(version => (
-                            <option key={version} value={version}>{version}</option>
-                        ))}
+                        <Label>Version</Label>
+                        <Select.Trigger>
+                            <Select.Value />
+                            <Select.Indicator />
+                        </Select.Trigger>
+                        <Select.Popover>
+                            <ListBox>
+                                {getTemplate(chosen_template)?.versions.map(version => (
+                                    // <option key={version} value={version}>{version}</option>
+                                    <ListBox.Item
+                                        id={version}
+                                        textValue={version}
+                                    >
+                                        {version}
+                                        <ListBox.ItemIndicator />
+                                    </ListBox.Item>
+                                ))}
+                            </ListBox>
+                        </Select.Popover>
                     </Select>
-                </Field>
-                <Button type="submit">Create</Button>
+                </TextField>
+                <div className="grid">
+                    <Button
+                        type="submit"
+                        className="place-self-end mr-2"
+                    >
+                        Create
+                    </Button>
+                </div>
             </form>
         </div>
     );

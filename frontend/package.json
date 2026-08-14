@@ -10,8 +10,10 @@
     "preview": "rsbuild preview"
   },
   "dependencies": {
-    "@headlessui/react": "^2.2.10",
+    "@heroui/react": "^3.2.4",
+    "@heroui/styles": "^3.2.4",
     "@phosphor-icons/react": "^2.1.10",
+    "bootstrap": "^5.3.8",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-router": "^8.3.0"

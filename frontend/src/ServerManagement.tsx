@@ -1,4 +1,4 @@
-import { Button, Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
+import { Button, Chip, Input, Tabs } from "@heroui/react";
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router";
 import { getServerInfo, isStatusAlive, restartServer, sendConsole as sendConsoleAPI, renameServer as renameServerAPI, deleteServer as deleteServerAPI, startServer, stopServer, openServerStatusSocket, openConsoleSocket, openConsoleSocketSync } from "./server_api";
@@ -68,62 +68,121 @@ const ServerManagement = () => {
     }
 
     return (
-        <div>
+        <div className="w-full h-screen">
             <div>
-                <h1 className="inline">{server_info === null ? "" : server_info.name}</h1>
-                <span className="ml-4">{server_status}</span>
-            </div>
-            <TabGroup>
-                <TabList>
-                    <Tab key="console">Console</Tab>
-                    <Tab key="server-man">Server Management</Tab>
-                </TabList>
-                <TabPanels>
-                    <TabPanel key="console">
-                        <div className="dark:bg-gray-800 w-full rounded-t-2x1 font-mono">
-                            {console_lines.map(line => (
-                                <p>{line}</p>
-                            ))}
-                        </div>
-                        <div>
-                            <form onSubmit={e => {e.preventDefault(); sendConsole()}}>
-                                <input className="w-full inline" placeholder="Enter a command" value={console_input} onChange={(e) => set_console_input(e.target.value)} />
-                                <Button className="inline bg-blue-500 ml-2" type="submit">Send</Button>
-                            </form>
-                        </div>
-                        <div>
-                            {
-                                server_status === null
-                                    ? (<span>Loading status information...</span>)
-                                    : (
-                                    isStatusAlive(server_status)
-                                        ? (
-                                            <span>
-                                                <Button className="inline bg-red-500" onClick={() => stopServer(server_id)}>Stop</Button>
-                                                <Button className="inline bg-blue-500" onClick={() => restartServer(server_id)}>Restart</Button>
-                                            </span>
-                                        )
-                                        : (
-                                            <Button className="inline bg-green-500" onClick={() => startServer(server_id)}>Start</Button>
-                                        )
-                                    )
+                <span style={{"fontSize": "x-large"}}>{server_info === null ? "" : server_info.name}</span>
+                <span className="ml-4">
+                    {
+                        // type StatusValue = "stopping" | "stopped" | "crashed" | "starting" | "started"
+                        (() => {
+                            let color, text;
+                            switch (server_status) {
+                                case "stopping":
+                                    color = "default";
+                                    text = "Stopping";
+                                    break;
+                                case "stopped":
+                                    color = "default";
+                                    text = "Stopped";
+                                    break;
+                                case "crashed":
+                                    color = "danger";
+                                    text = "Crashed";
+                                    break;
+                                case "starting":
+                                    color = "success";
+                                    text = "Starting";
+                                    break;
+                                case "started":
+                                    color = "success";
+                                    text = "Started";
+                                    break;
+                                default:
+                                    color = "danger";
+                                    text = `Unknown state '${server_status}'`;
                             }
-                        </div>
-                    </TabPanel>
-                    <TabPanel key="server-man">
-                        <form onSubmit={e => {e.preventDefault(); renameServer()}}>
-                            <input
-                                className="inline"
-                                placeholder="Enter a new name for this server"
-                                value={server_new_name}
-                                onChange={(e) => set_server_new_name(e.target.value)}
+                            return (
+                                <Chip className="text-lg" color={color}>{text}</Chip>
+                            )
+                        })()
+                    }
+                </span>
+            </div>
+            <Tabs className="w-full h-full">
+                <Tabs.ListContainer>
+                    <Tabs.List>
+                        <Tabs.Tab id="console">
+                            Console
+                            <Tabs.Indicator />
+                        </Tabs.Tab>
+                        <Tabs.Tab id="server-man">
+                            Server Management
+                            <Tabs.Indicator />
+                        </Tabs.Tab>
+                    </Tabs.List>
+                </Tabs.ListContainer>
+                <Tabs.Panel
+                    id="console"
+                    className="w-full h-full"
+                >
+                    <div className="bg-gray-800 w-full h-2/3 overflow-scroll rounded-t-2x1 font-mono">
+                        {console_lines.map(line => (
+                            <p>{line}</p>
+                        ))}
+                    </div>
+                    <div>
+                        <form
+                            className="flex"
+                            onSubmit={e => {e.preventDefault(); sendConsole()}}
+                        >
+                            <Input
+                                className="inline flex-1"
+                                placeholder="Enter a command"
+                                value={console_input}
+                                onChange={(e) => set_console_input(e.target.value)}
                             />
-                            <Button className="bg-blue-500 ml-2" type="submit">Rename</Button>
+                            <Button
+                                className="inline bg-blue-500 ml-2 flex-none"
+                                type="submit"
+                            >
+                                Send
+                            </Button>
                         </form>
-                        <Button className="bg-red-500" onClick={() => deleteServer()}>Delete Server</Button>
-                    </TabPanel>
-                </TabPanels>
-            </TabGroup>
+                    </div>
+                    <div className="mt-4">
+                        {
+                            server_status === null
+                                ? (<span>Loading status information...</span>)
+                                : (
+                                isStatusAlive(server_status)
+                                    ? (
+                                        <div className="mx-auto size-fit">
+                                            <Button className="inline bg-red-500 mx-2" onClick={() => stopServer(server_id)}>Stop</Button>
+                                            <Button className="inline bg-blue-500" onClick={() => restartServer(server_id)}>Restart</Button>
+                                        </div>
+                                    )
+                                    : (
+                                        <div className="mx-auto size-fit">
+                                            <Button className="inline bg-green-500" onClick={() => startServer(server_id)}>Start</Button>
+                                        </div>
+                                    )
+                                )
+                        }
+                    </div>
+                </Tabs.Panel>
+                <Tabs.Panel id="server-man">
+                    <form onSubmit={e => {e.preventDefault(); renameServer()}}>
+                        <Input
+                            className="inline"
+                            placeholder="Enter a new name for this server"
+                            value={server_new_name}
+                            onChange={(e) => set_server_new_name(e.target.value)}
+                        />
+                        <Button className="bg-blue-500 ml-2" type="submit">Rename</Button>
+                    </form>
+                    <Button className="bg-red-500" onClick={() => deleteServer()}>Delete Server</Button>
+                </Tabs.Panel>
+            </Tabs>
         </div>
     )
 };
