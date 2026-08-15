@@ -1,6 +1,6 @@
 <mxfile host="Electron">
   <diagram name="Page-1" id="W9Kmmc40F6Gz2fNp_sXg">
-    <mxGraphModel dx="1660" dy="1172" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="1758" dy="1241" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -182,7 +182,7 @@
           </mxGeometry>
         </mxCell>
         <mxCell id="cr5Isa4fbqzMjlPj2a_2-92" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" value="ActiveServer" vertex="1">
-          <mxGeometry height="210" width="180" x="760" y="150" as="geometry" />
+          <mxGeometry height="230" width="180" x="760" y="130" as="geometry" />
         </mxCell>
         <mxCell id="cr5Isa4fbqzMjlPj2a_2-93" parent="cr5Isa4fbqzMjlPj2a_2-92" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="+ id: UUID" vertex="1">
           <mxGeometry height="26" width="180" y="26" as="geometry" />
@@ -190,8 +190,8 @@
         <mxCell id="cr5Isa4fbqzMjlPj2a_2-94" parent="cr5Isa4fbqzMjlPj2a_2-92" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" value="" vertex="1">
           <mxGeometry height="8" width="180" y="52" as="geometry" />
         </mxCell>
-        <mxCell id="cr5Isa4fbqzMjlPj2a_2-95" parent="cr5Isa4fbqzMjlPj2a_2-92" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="+ &lt;u&gt;ActiveServer(server: Server)&lt;/u&gt;&lt;div&gt;+ getServer(): Server&lt;/div&gt;&lt;div&gt;+ getLocation(): Path&lt;/div&gt;&lt;div&gt;+ getVersion(): Version&lt;/div&gt;&lt;div&gt;+ getStatus(): ServerStatus&lt;br&gt;&lt;div&gt;+ rename(name: String)&lt;/div&gt;&lt;div&gt;+ delete()&lt;br&gt;&lt;div&gt;+ start()&lt;/div&gt;&lt;div&gt;+ stop()&lt;/div&gt;&lt;div&gt;+ restart()&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;" vertex="1">
-          <mxGeometry height="150" width="180" y="60" as="geometry" />
+        <mxCell id="cr5Isa4fbqzMjlPj2a_2-95" parent="cr5Isa4fbqzMjlPj2a_2-92" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="+ &lt;u&gt;ActiveServer(server: Server)&lt;/u&gt;&lt;div&gt;+ getServer(): Server&lt;/div&gt;&lt;div&gt;+ getLocation(): Path&lt;/div&gt;&lt;div&gt;+ getVersion(): Version&lt;/div&gt;&lt;div&gt;+ getStatus(): ServerStatus&lt;br&gt;&lt;div&gt;+ rename(name: String)&lt;/div&gt;&lt;div&gt;+ delete()&lt;br&gt;&lt;div&gt;+ start()&lt;/div&gt;&lt;div&gt;+ stop()&lt;/div&gt;&lt;div&gt;+ restart()&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;div&gt;+ getLogFiles(): List&amp;lt;LogFile&amp;gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="170" width="180" y="60" as="geometry" />
         </mxCell>
         <mxCell id="cr5Isa4fbqzMjlPj2a_2-97" edge="1" parent="1" source="cr5Isa4fbqzMjlPj2a_2-93" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="cr5Isa4fbqzMjlPj2a_2-16">
           <mxGeometry relative="1" as="geometry" />
@@ -207,7 +207,7 @@
           </mxGeometry>
         </mxCell>
         <mxCell id="cr5Isa4fbqzMjlPj2a_2-112" connectable="0" parent="1" style="group" value="" vertex="1">
-          <mxGeometry height="54" width="160" x="770" y="50" as="geometry" />
+          <mxGeometry height="54" width="160" x="770" y="30" as="geometry" />
         </mxCell>
         <mxCell id="cr5Isa4fbqzMjlPj2a_2-2" parent="cr5Isa4fbqzMjlPj2a_2-112" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" value="ServerManager" vertex="1">
           <mxGeometry height="34" width="160" y="20" as="geometry" />

@@ -1,10 +1,18 @@
 package de.maria_writes_code.mcsm.backend.features.server;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.UUID;
+import static de.maria_writes_code.mcsm.backend.App.LOGGER;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.UUID;
 import org.apache.commons.io.FileUtils;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
@@ -24,6 +32,11 @@ import de.maria_writes_code.mcsm.backend.utils.Utils;
 
 @NullMarked
 public class ActiveServer {
+    private static final List<String> POTENTIAL_LOG_LOCATIONS = List.of(
+        "logs",
+        "crash-reports"
+    );
+
     private final Context context;
 
     private final UUID id;
@@ -153,6 +166,45 @@ public class ActiveServer {
 
     public void sendCommand(String line) throws IOException {
         process.sendCommand(line);
+    }
+
+    /**
+     * Get all log files in descending order by their date of modification.
+     * @return A list of paths which are (at time of check) paths to existing log files
+     * @throws IOException if an I/O error occurs
+     */
+    public List<LogFile> getLogFiles() throws IOException {
+        List<LogFile> outputList = new ArrayList<>();
+        for (var logLocation : POTENTIAL_LOG_LOCATIONS) {
+            var logDir = getLocation().resolve(logLocation);
+            try {
+                Files.list(logDir)
+                    .filter(p -> Files.isRegularFile(p, LinkOption.NOFOLLOW_LINKS))
+                    .map(p -> LogFile.fromFileName(
+                        p,
+                        getLocation().relativize(p).toString())
+                    )
+                    .forEach(outputList::add);
+            } catch (NoSuchFileException e) {
+                // skip this location
+            }
+        }
+        // Sorting after the fact because it's easier and only needs one allocation instead of n.
+        // Note however that this is slower by n*log(k) where k is the amount of log sources.
+        //  O(n*log(n)) if sort once vs O(k*(n/k)*log(n/k)) = O(n*log(n/k)) = O(n*(log(n)-log(k)))
+        // (we would still need to sort after the fact, but this will be faster than O(nlogn)
+        //  due to the way List.sort optimizes for partially sorted lists)
+        outputList.sort(Comparator.<LogFile, FileTime>comparing(file -> {
+            try {
+                return Files.getLastModifiedTime(file.getLocation(), LinkOption.NOFOLLOW_LINKS);
+            } catch (IOException e) {
+                // FIXME: proper handling of I/O exceptions inside comparators.
+                LOGGER.warn("I/O error while comparing file dates", e);
+                // reasonable default
+                return FileTime.from(Instant.EPOCH);
+            }
+        }).reversed());
+        return outputList;
     }
 
     @Component

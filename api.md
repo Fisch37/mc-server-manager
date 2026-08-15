@@ -95,6 +95,28 @@ Response:
     - 204 No Content on a success
     - 409 Conflict if the server is not `"started"`, `"starting"` or `"stopping"`
 
+## Server Logs
+### GET /server/{id}/logs
+Get a list of log files for this server.
+Logs should be ordered by their creation date, in descending order.
+The exact format of the log file names is left unspecified,
+but should be somewhat human readable.
+
+Response:
+```json
+[
+    <string>*
+]
+```
+
+### GET /server/{id}/logs/content?log_name=<string>
+Get a specific log file.
+
+Response:
+    - A `text/plain` response, which is the log file.
+    - 404 if either no server of the UUID or no log file of that name exists.
+
+_Note: In a previous iteration this was `/logs/{log_name}`, but this had to be discarded, due to the fact that Spring simply does not allow escaped slashes (i.e. `%2F`) in path variables._
 
 ## Templates
 ### GET /templates
