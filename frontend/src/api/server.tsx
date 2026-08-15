@@ -99,23 +99,23 @@ export class TypedSocket<Packet> {
 export async function openServerStatusSocket(id: string): Promise<TypedSocket<ServerStatus>> {
     return new TypedSocket(
         // evil url injection vulnerability
-        await openWS(`ws://${WS_ROOT}/server/${id}/status/follow`)
+        await openWS(`/server/${id}/status/follow`)
     );
 }
 
 export async function openConsoleSocket(id: string): Promise<TypedSocket<ConsoleLine>> {
     return new TypedSocket(
         // evil url injection vulnerability
-        await openWS(`ws://${WS_ROOT}/server/${id}/console`)
+        await openWS(`/server/${id}/console`)
     );
 }
 
 export function openConsoleSocketSync(id: string): TypedSocket<ConsoleLine> {
-    return new TypedSocket(new WebSocket(`ws://${WS_ROOT}/server/${id}/console`));
+    return new TypedSocket(new WebSocket(getWSUrl(`/server/${id}/console`)));
 }
 
-async function openWS(url: string|URL): Promise<WebSocket> {
-    let socket = new WebSocket(url);
+async function openWS(url: string): Promise<WebSocket> {
+    let socket = new WebSocket(getWSUrl(url));
     const open_promise = new Promise((resolve, reject) => {
         const open_listener = () => {
             resolve(undefined);
@@ -132,4 +132,11 @@ async function openWS(url: string|URL): Promise<WebSocket> {
     })
     await open_promise;
     return socket;
+}
+
+function getWSUrl(path: string): URL {
+    let url = new URL(window.location.href);
+    url.protocol = "ws:";
+    url.pathname = `${WS_ROOT}${path}`;
+    return url;
 }

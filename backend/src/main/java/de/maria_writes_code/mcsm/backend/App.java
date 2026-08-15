@@ -12,12 +12,19 @@ import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.servers.Server;
 
 @SpringBootApplication(scanBasePackages = "de.maria_writes_code.mcsm.backend")
 @EntityScan("de.maria_writes_code.mcsm.backend")
 @EnableJpaRepositories(value = "de.maria_writes_code.mcsm.backend", considerNestedRepositories = true)
 @RestController
-@OpenAPIDefinition(info = @Info(title = "MC Server Manager API"))
+@OpenAPIDefinition(
+    info = @Info(title = "MC Server Manager API"),
+    servers = {
+        @Server(url = "/", description = "Develop"),
+        @Server(url = "/api", description = "Production Docker")
+    }
+)
 public class App implements InitializingBean {
     public static final Logger LOGGER = LoggerFactory.getLogger("MCSM App");
 

@@ -15,9 +15,6 @@ RUN mvn --batch-mode -am -DskipTests package \
     && test -f "${JAR_PATH}" \
     && cp "${JAR_PATH}" /tmp/app.jar
 
-
-FROM eclipse-temurin:25-jre AS runtime
-
 ### frontend
 FROM denoland/deno:debian AS build_deno
 
@@ -32,10 +29,10 @@ RUN deno ci
 COPY frontend .
 RUN deno run build
 
-FROM runtime
+FROM ubuntu AS runtime
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends nginx \
+    && apt-get install -y --no-install-recommends nginx openjdk-25-jre-headless \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -45,18 +42,19 @@ WORKDIR /app
 EXPOSE 80
 EXPOSE 8080
 
+
+VOLUME /var/mcsm/
+RUN mkdir /var/mcsm
+
+FROM runtime
+
 COPY frontend/nginx.conf /etc/nginx/sites-enabled/default
 COPY --from=build_deno /build/dist /usr/share/nginx/html
 COPY --from=build_java /tmp/app.jar ./app.jar
 
-VOLUME /var/mcsm/
-# TODO: Introduce a better permission system
-RUN mkdir /var/mcsm
-RUN chmod 777 /var/mcsm
-
 # ENTRYPOINT ["java", "-jar", "app.jar"]
 CMD ["bash", "-lc", "\
-  java -jar app.jar & JAVA_PID=$!; \
+  su $(id -nu 1000) -c \"java -jar app.jar & JAVA_PID=$!\"; \
   nginx -g 'daemon off;' & NGINX_PID=$!; \
   trap 'kill -TERM $JAVA_PID $NGINX_PID; wait' TERM INT; \
   wait -n; \
