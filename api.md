@@ -199,7 +199,15 @@ Get information about a single template.
     "name": <cleartext string>,
     "has_mods": <boolean>,
     "versions": [
-        <version string>*
+        <version info object>*
     ]
+}
+```
+
+### Version Info
+```json
+{
+    "id": <version string>,
+    "channel": <channel string>
 }
 ```

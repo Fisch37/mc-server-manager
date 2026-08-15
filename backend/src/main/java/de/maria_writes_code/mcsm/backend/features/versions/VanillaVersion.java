@@ -26,8 +26,9 @@ public class VanillaVersion implements Version {
 
     private final Mutex<@Nullable VanillaDetails> details = new Mutex<>(null);
 
-    public VanillaVersion(String id, URL metadataUrl) {
+    public VanillaVersion(String id, String channel, URL metadataUrl) {
         this.id = id;
+        this.channel = channel;
         this.metadataUrl = metadataUrl;
     }
 

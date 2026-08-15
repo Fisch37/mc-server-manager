@@ -100,7 +100,9 @@ public record ServerTemplateDefinition(
     @JacksonXmlRootElement(localName = "version")
     public record Version(
         @JacksonXmlProperty(isAttribute = true)
-        String id
+        String id,
+        @JacksonXmlProperty(isAttribute = true)
+        @Nullable String channel
     ) implements VersionRangeSpecifier {
         @Override
         public boolean contains(String versionId, Collection<Version> reference) {
@@ -144,10 +146,13 @@ public record ServerTemplateDefinition(
             return Stream.concat(
                 provider.getVersions()
                     .stream()
-                    .map(canonicalVersion -> new Version(canonicalVersion.id()))
+                    .map(canonicalVersion -> new Version(
+                        canonicalVersion.id(),
+                        canonicalVersion.channel()
+                    ))
                 ,
                 explicitVersions.stream()
-            );  
+            );
         }
     }
 

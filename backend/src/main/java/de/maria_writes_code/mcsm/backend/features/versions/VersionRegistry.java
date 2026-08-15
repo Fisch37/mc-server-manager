@@ -126,9 +126,9 @@ public class VersionRegistry implements InitializingBean, VersionProvider {
         return config.getVanillaJarLocation().resolve(sha1 + ".jar");
     }
 
-    private record ManifestVersion(String id, URL url) {
+    private record ManifestVersion(String id, String type, URL url) {
         public VanillaVersion toVanilla() {
-            return new VanillaVersion(id, url);
+            return new VanillaVersion(id, type, url);
         }
     }
 

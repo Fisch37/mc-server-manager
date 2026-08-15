@@ -7,6 +7,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 public abstract sealed class Utils permits Utils.Seal {
@@ -78,6 +79,13 @@ public abstract sealed class Utils permits Utils.Seal {
         } else {
             return value;
         }
+    }
+
+    public static <T> @NonNull T or(
+        @Nullable T value,
+        @NonNull T defaultValue
+    ) {
+        return value == null ? defaultValue : value;
     }
 
     public static boolean isExitCodeOk(int exitCode) {

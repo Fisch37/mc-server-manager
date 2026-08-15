@@ -65,6 +65,7 @@ The following is an annotated example structure for a `template.xml` file.
         If a listed version does not exist when the template is loaded, it will be ignored.
     -->
     <versions src="vanilla">
+        <!-- can optionally include a "channel" property to specify a release channel -->
         <version id="1.21.11" />
         <version id="1.21.10" />
         <!-- etc -->

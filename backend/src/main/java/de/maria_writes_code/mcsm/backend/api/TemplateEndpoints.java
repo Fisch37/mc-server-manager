@@ -14,6 +14,7 @@ import de.maria_writes_code.mcsm.backend.features.templates.ServerTemplate;
 import de.maria_writes_code.mcsm.backend.features.templates.ServerTemplateDefinition;
 import de.maria_writes_code.mcsm.backend.features.templates.TemplateProvider;
 import de.maria_writes_code.mcsm.backend.features.versions.VersionRegistry;
+import de.maria_writes_code.mcsm.backend.utils.Utils;
 
 @RestController
 @RequestMapping("templates")
@@ -38,7 +39,7 @@ public class TemplateEndpoints {
         String id,
         String name,
         boolean has_mods,
-        List<String> versions
+        List<VersionInfo> versions
     ) {
         public TemplateSummaryObject(ServerTemplate template, VersionRegistry versions) {
             this(template.getDefinition(), versions);
@@ -51,9 +52,19 @@ public class TemplateEndpoints {
                 false,
                 template.versions()
                     .getAllVersions(versions)
-                    .map(v -> v.id())
+                    .map(v -> new VersionInfo(
+                            v.id(),
+                            Utils.or(v.channel(), VersionInfo.DEFAULT_CHANNEL)
+                    ))
                     .collect(Collectors.toList())
             );
         }
+    }
+
+    public record VersionInfo(
+        String id,
+        String channel
+    ) {
+        public final static String DEFAULT_CHANNEL = "release";
     }
 }
