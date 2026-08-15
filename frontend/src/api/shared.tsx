@@ -1,6 +1,7 @@
-export const WS_ROOT: string = "localhost:8080";
-// const API_ROOT: string = "/api";
-const API_ROOT: string = "http://localhost:8080"
+// export const WS_ROOT: string = "localhost:8080";
+// const API_ROOT: string = "http://localhost:8080"
+const API_ROOT: string = "/api";
+export const WS_ROOT: string = "/api";
 
 export async function fetchApi(
     url: string,

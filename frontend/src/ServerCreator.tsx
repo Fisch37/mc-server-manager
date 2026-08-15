@@ -1,7 +1,7 @@
 import { Button, TextField, Input, Label, Select, ListBox, FieldError } from "@heroui/react";
 import { useEffect, useState } from "react";
-import { getTemplates, type TemplateSummary } from "./template_api";
-import { createServer as createServerAPI } from "./server_api";
+import { getTemplates, type TemplateSummary } from "./api/template";
+import { createServer as createServerAPI } from "./api/server";
 
 const ServerCreator = () => {
     const [templates, set_templates] = useState<Array<TemplateSummary>>([]);

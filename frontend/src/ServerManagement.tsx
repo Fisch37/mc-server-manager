@@ -1,9 +1,14 @@
 import { Button, Chip, Input, ListBox, Select, Tabs } from "@heroui/react";
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router";
-import { getServerInfo, isStatusAlive, restartServer, sendConsole as sendConsoleAPI, renameServer as renameServerAPI, deleteServer as deleteServerAPI, startServer, stopServer, openServerStatusSocket, openConsoleSocket, openConsoleSocketSync } from "./server_api";
-import type { ConsoleBacklog, ConsoleLine, Server, StatusValue, TypedSocket } from "./server_api";
-import { getLogContent, getLogFiles } from "./log_api";
+import {
+    getServerInfo, isStatusAlive, restartServer, sendConsole as sendConsoleAPI,
+    renameServer as renameServerAPI, deleteServer as deleteServerAPI,
+    startServer, stopServer, openServerStatusSocket,
+    openConsoleSocketSync
+} from "./api/server";
+import type { ConsoleBacklog, ConsoleLine, Server, StatusValue, TypedSocket } from "./api/server";
+import { getLogContent, getLogFiles } from "./api/log";
 
 const WS_CLOSING_STATES: Array<number> = [WebSocket.CLOSING, WebSocket.CLOSED];
 

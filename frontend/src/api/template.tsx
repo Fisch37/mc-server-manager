@@ -1,4 +1,4 @@
-import { fetchApi } from "./api"
+import { fetchApi } from "./shared"
 
 export type TemplateSummary = {
     id: string,

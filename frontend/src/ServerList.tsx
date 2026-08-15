@@ -1,6 +1,6 @@
 import { HardDrivesIcon, PlayIcon, RepeatIcon, StopIcon, PlusSquareIcon } from "@phosphor-icons/react";
 import { useNavigate } from "react-router";
-import { getServerList, restartServer, startServer, stopServer, type Server } from "./server_api";
+import { getServerList, restartServer, startServer, stopServer, type Server } from "./api/server";
 import { useEffect, useState } from "react";
 import { Button, Modal } from "@heroui/react";
 import ServerCreator from "./ServerCreator";

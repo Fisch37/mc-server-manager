@@ -1,4 +1,4 @@
-import { fetchApi, WS_ROOT } from "./api";
+import { fetchApi, WS_ROOT } from "./shared";
 
 export type StatusValue = "stopping"|"stopped"|"crashed"|"starting"|"started";
 

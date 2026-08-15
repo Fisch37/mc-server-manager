@@ -1,4 +1,4 @@
-import { fetchApi } from "./api";
+import { fetchApi } from "./shared";
 
 export async function getLogFiles(server_id: string): Promise<string[]> {
     return await fetchApi(`/server/${server_id}/logs`);
