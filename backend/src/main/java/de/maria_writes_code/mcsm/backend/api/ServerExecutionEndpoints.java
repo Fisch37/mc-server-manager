@@ -27,6 +27,7 @@ import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
 
 import de.maria_writes_code.mcsm.backend.api.websockets.ConsoleSocket;
 import de.maria_writes_code.mcsm.backend.api.websockets.ServerStatusSocket;
+import de.maria_writes_code.mcsm.backend.features.runtimes.NoSuchRuntimeException;
 import de.maria_writes_code.mcsm.backend.features.server.ActiveServer;
 import de.maria_writes_code.mcsm.backend.features.server.ServerManager;
 import de.maria_writes_code.mcsm.backend.features.server.ServerStatus;
@@ -58,6 +59,12 @@ public class ServerExecutionEndpoints {
         var server = getServer(id);
         try {
             server.start();
+        } catch (NoSuchRuntimeException e) {
+            @SuppressWarnings("deprecation")
+            var exc = new ResponseStatusException(
+                HttpStatus.I_AM_A_TEAPOT
+            );
+            throw exc;
         } catch (IllegalStateException e) {
             throw new ResponseStatusException(
                 HttpStatus.CONFLICT,

@@ -62,6 +62,7 @@ Response:
         unless `follow` is specified, in which case a new [server status socket](#server-status-socket) is returned.
     - 409 Conflict, if the server is not `"stopped"` or `"crashed"`,
         containing the current [server status](#server-status-object)
+    - 418 I'm a Teapot, if the server can't start due to a missing runtime.
 
 ### POST /server/{id}/stop
 Stop the server.

@@ -2,7 +2,6 @@ package de.maria_writes_code.mcsm.backend.features.templates;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -100,9 +99,7 @@ public class ServerTemplate {
             }
         }
 
-        try (var file = new FileOutputStream(path.resolve(definition.executable().file()).toFile())) {
-            context.versionRegistry.getExecutable(versionId, file);
-        }
+        context.versionRegistry.getExecutable(versionId, path.resolve(definition.executable().file()));
     }
 
     @Component

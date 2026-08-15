@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import de.maria_writes_code.mcsm.backend.AppConfig;
+import de.maria_writes_code.mcsm.backend.features.runtimes.NoSuchRuntimeException;
 import de.maria_writes_code.mcsm.backend.features.runtimes.RuntimeProvider;
 import de.maria_writes_code.mcsm.backend.features.templates.ServerTemplate;
 import de.maria_writes_code.mcsm.backend.features.templates.TemplateProvider;
@@ -111,11 +112,11 @@ public class ActiveServer {
 
 
     
-    public void start() throws IOException {
+    public void start() throws NoSuchRuntimeException, IllegalStateException, IOException {
         var executable = getTemplate().getDefinition().executable();
-        var runtime = context.runtimeProvider.getRuntime(server.getJavaVersion());
+        var runtime = context.runtimeProvider.getRuntimeSupporting(server.getJavaVersion());
         if (runtime == null) {
-            throw new IllegalStateException("Runtime for server does not exist");
+            throw new NoSuchRuntimeException("Runtime for server does not exist");
         }
         var args = new ArrayList<String>();
         args.add(runtime.getExecutable().toString());

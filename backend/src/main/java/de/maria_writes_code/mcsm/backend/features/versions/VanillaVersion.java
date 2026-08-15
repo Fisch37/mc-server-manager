@@ -7,10 +7,13 @@ import java.net.URISyntaxException;
 import java.net.URL;
 
 import org.apache.commons.lang3.NotImplementedException;
+import org.jspecify.annotations.Nullable;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import de.maria_writes_code.mcsm.backend.utils.Mutex;
 
 public class VanillaVersion implements Version {
     static final ObjectMapper MAPPER = new ObjectMapper()
@@ -18,7 +21,10 @@ public class VanillaVersion implements Version {
     ;
 
     private String id;
+    private String channel;
     private URL metadataUrl;
+
+    private final Mutex<@Nullable VanillaDetails> details = new Mutex<>(null);
 
     public VanillaVersion(String id, URL metadataUrl) {
         this.id = id;
@@ -31,13 +37,23 @@ public class VanillaVersion implements Version {
     }
 
     @Override
+    public String channel() {
+        return channel;
+    }
+
+    @Override
     public Details fetchVersionDetails() throws IOException {
         return fetchVersionDetailsConcrete();
     }
 
     public VanillaDetails fetchVersionDetailsConcrete() throws IOException {
-        var tree = MAPPER.readTree(metadataUrl.openStream());
-        return new VanillaDetails(id, tree);
+        synchronized (this.details) {
+            if (details.get() != null)
+                return details.get();
+            var tree = MAPPER.readTree(metadataUrl.openStream());
+            details.set(new VanillaDetails(id, tree));
+            return details.get();
+        }
     }
 
     public record VanillaDetails(String versionId, int javaVersion, URL serverJar, String serverSha1) implements Details {
@@ -53,6 +69,10 @@ public class VanillaVersion implements Version {
 
             var download = details.get("downloads")
                 .get("server");
+            if (download == null) {
+                // version does not support servers
+                throw new NotImplementedException("TODO: Throw a good exception here");
+            }
             var urlString = download.get("url").asText();
             if (urlString.isEmpty()) {
                 throw new NotImplementedException("TODO: Throw a good exception here");

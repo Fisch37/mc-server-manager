@@ -1,9 +1,6 @@
 package de.maria_writes_code.mcsm.backend.features.versions;
 
-import java.io.BufferedOutputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -11,10 +8,10 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
-import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.FileUtils;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +44,7 @@ public class VersionRegistry implements InitializingBean, VersionProvider {
         }
     }
 
-    private ConcurrentMap<String, VanillaVersion> versions;
+    private Map<String, VanillaVersion> versions;
     @Autowired
     private AppConfig config;
     @Autowired
@@ -64,7 +61,7 @@ public class VersionRegistry implements InitializingBean, VersionProvider {
             throw new IOException("Malformed manifest: Expected a versions array");
         }
         // TODO: Replace this with a map type that is concurrent and sorted
-        versions = new ConcurrentHashMap<>();
+        versions = new LinkedHashMap<>();
         for (var version : versionsRaw) {
             var manifest = VanillaVersion.MAPPER.treeToValue(version, ManifestVersion.class);
             versions.put(manifest.id(), manifest.toVanilla());
@@ -85,9 +82,9 @@ public class VersionRegistry implements InitializingBean, VersionProvider {
     /**
      * Download the executable for the specified version.
      * @param versionId The version to download for
-     * @param destination The stream into which the executable is downloaded.
+     * @param destination The path into which the executable is downloaded.
      */
-    public void getExecutable(String versionId, OutputStream destination) throws IOException {
+    public void getExecutable(String versionId, Path destination) throws IOException {
         var version = versions.get(versionId);
         if (version == null) {
             throw new IllegalArgumentException("Version does not exist");
@@ -117,12 +114,7 @@ public class VersionRegistry implements InitializingBean, VersionProvider {
     private Path fetchExecutable(VanillaVersion.VanillaDetails details) throws IOException {
         var destination = executablePath(details);
         var url = details.serverJar();
-        try(
-            var file = new BufferedOutputStream(new FileOutputStream(destination.toFile()));
-            var data = url.openStream();
-        ) {
-            IOUtils.copy(data, file);
-        }
+        FileUtils.copyURLToFile(url, destination.toFile());
         vanillaJars.save(new ServerJar.Vanilla(details.versionId(), details.serverSha1()));
         return destination;
     }

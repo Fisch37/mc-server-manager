@@ -230,7 +230,7 @@
         <mxCell id="cr5Isa4fbqzMjlPj2a_2-109" parent="cr5Isa4fbqzMjlPj2a_2-107" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" value="" vertex="1">
           <mxGeometry height="8" width="240" y="52" as="geometry" />
         </mxCell>
-        <mxCell id="cr5Isa4fbqzMjlPj2a_2-110" parent="cr5Isa4fbqzMjlPj2a_2-107" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="+ getVersionInfo(versionId: String): Version&lt;div&gt;+ getExecutable(versionId: String, destination: OutputStream)&lt;/div&gt;" vertex="1">
+        <mxCell id="cr5Isa4fbqzMjlPj2a_2-110" parent="cr5Isa4fbqzMjlPj2a_2-107" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="+ getVersionInfo(versionId: String): Version&lt;div&gt;+ getExecutable(versionId: String, destination: Path)&lt;/div&gt;" vertex="1">
           <mxGeometry height="70" width="240" y="60" as="geometry" />
         </mxCell>
         <mxCell id="cr5Isa4fbqzMjlPj2a_2-113" parent="cr5Isa4fbqzMjlPj2a_2-114" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=right;verticalAlign=middle;rounded=0;" value="&lt;i&gt;Service&lt;/i&gt;" vertex="1">

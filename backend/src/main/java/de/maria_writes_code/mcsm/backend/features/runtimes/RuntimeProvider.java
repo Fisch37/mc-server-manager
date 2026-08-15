@@ -60,9 +60,9 @@ public class RuntimeProvider implements InitializingBean {
      * @return Some java runtime with a version >= javaVersion, or null if no such runtime is available.
      */
     public @Nullable JavaRuntime getRuntimeSupporting(int javaVersion) {
-        return runtimes.tailMap(javaVersion)
-            .firstEntry()
-            .getValue();
+        var entry = runtimes.tailMap(javaVersion)
+            .firstEntry();
+        return entry == null ? null : entry.getValue();
     }
 
     public void fetchRuntime(int javaVersion) {

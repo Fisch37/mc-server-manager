@@ -15,6 +15,7 @@ const ServerManagement = () => {
     
     const [console_lines, set_console_lines] = useState([]);
     const [console_input, set_console_input] = useState("");
+    let console_end = useRef(null);
     
     const [selected_log, set_selected_log] = useState("");
     const [available_logs, set_available_logs] = useState<Array<string>>([]);
@@ -33,6 +34,11 @@ const ServerManagement = () => {
             .catch(e => console.error(`Failed to get server info ${e}`))
     }
 
+    function scrollConsoleToEnd() {
+        // TODO: This leaves one line hidden
+        console_end.current?.scrollTo(0, console_end.current?.scrollHeight);
+    }
+
     useEffect(fetchAndSetServerInfo, []);
     useEffect(() => {
         openServerStatusSocket(server_id)
@@ -48,9 +54,12 @@ const ServerManagement = () => {
                 console_socket.current = openConsoleSocketSync(server_id);
                 console_socket.current.addOnMessage(message => {
                     if ("line" in message) {
-                        set_console_lines(prev => [...prev, message.line])
+                        debugger;
+                        set_console_lines(prev => [...prev, message.line]);
+                        scrollConsoleToEnd();
                     } else if ("backlog" in message) {
                         set_console_lines([...message.backlog]);
+                        scrollConsoleToEnd();
                     } else {
                         console.warn("Received unexpected message: " + message);
                     }
@@ -155,7 +164,10 @@ const ServerManagement = () => {
                     id="console"
                     className="w-full h-full"
                 >
-                    <div className="bg-gray-800 w-full h-2/3 overflow-scroll rounded-t-2x1 font-mono">
+                    <div
+                        ref={console_end}
+                        className="bg-gray-800 w-full h-2/3 overflow-scroll rounded-t-2x1 font-mono"
+                    >
                         {console_lines.map(line => (
                             <p>{line}</p>
                         ))}

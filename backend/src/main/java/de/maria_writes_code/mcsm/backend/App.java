@@ -25,6 +25,16 @@ public class App implements InitializingBean {
     private AppConfig config;
 
     public static void main(String[] args) {
+        // try {
+        //     new de.maria_writes_code.mcsm.backend.features.runtimes.AdoptiumRuntime(
+        //         25,
+        //         java.nio.file.Path.of("/home/maria/Documents/mc-server-manager/run/runtimes")
+        //     );
+        // } catch (java.io.IOException e) {
+        //     // TODO Auto-generated catch block
+        //     e.printStackTrace();
+        //     return;
+        // }
         SpringApplication.run(App.class, args);
     }
 
