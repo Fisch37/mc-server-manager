@@ -18,5 +18,12 @@ export async function fetchApi(
     if (response.status == 204) {
         return undefined;
     }
-    return await response.json();
+    let resp_content_type = response.headers.get("Content-Type");
+    if (resp_content_type === "application/json") {
+        return await response.json();
+    } else if (resp_content_type === "text/plain") {
+        return await response.text();
+    } else {
+        throw "Unexpected content type in API response: " + resp_content_type;
+    }
 }

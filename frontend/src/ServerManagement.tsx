@@ -1,8 +1,9 @@
-import { Button, Chip, Input, Tabs } from "@heroui/react";
+import { Button, Chip, Input, ListBox, Select, Tabs } from "@heroui/react";
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router";
 import { getServerInfo, isStatusAlive, restartServer, sendConsole as sendConsoleAPI, renameServer as renameServerAPI, deleteServer as deleteServerAPI, startServer, stopServer, openServerStatusSocket, openConsoleSocket, openConsoleSocketSync } from "./server_api";
 import type { ConsoleBacklog, ConsoleLine, Server, StatusValue, TypedSocket } from "./server_api";
+import { getLogContent, getLogFiles } from "./log_api";
 
 const WS_CLOSING_STATES: Array<number> = [WebSocket.CLOSING, WebSocket.CLOSED];
 
@@ -10,9 +11,14 @@ const ServerManagement = () => {
     const server_id = useParams().server_id;
 
     const [server_info, set_server_info] = useState<Server|null>(null);
+    const [server_status, set_server_status] = useState<StatusValue|null>(null);
+    
     const [console_lines, set_console_lines] = useState([]);
     const [console_input, set_console_input] = useState("");
-    const [server_status, set_server_status] = useState<StatusValue|null>(null);
+    
+    const [selected_log, set_selected_log] = useState("");
+    const [available_logs, set_available_logs] = useState<Array<string>>([]);
+    const [log_content, set_log_content] = useState("");
     
     const [server_new_name, set_server_new_name] = useState("");
     const console_socket = useRef<TypedSocket<ConsoleLine|ConsoleBacklog>|null>(null);
@@ -52,6 +58,26 @@ const ServerManagement = () => {
             }
         }
     }, [server_status]);
+
+    useEffect(() => {
+        getLogFiles(server_id).then(
+            files => {
+                set_available_logs([...files]);
+                if (files.length > 0) 
+                    set_selected_log(files[0])
+            }
+        ).catch(
+            e => console.error("Failed to fetch log files: " + e)
+        );
+    }, []);
+    useEffect(() => {
+        if (!selected_log) return;
+        getLogContent(server_id, selected_log).then(
+            content => set_log_content(content)
+        ).catch(
+            e => console.error("Failed to fetch log content: " + e)
+        );
+    }, [selected_log])
 
     async function sendConsole() {
         await sendConsoleAPI(server_id, console_input);
@@ -115,6 +141,10 @@ const ServerManagement = () => {
                             Console
                             <Tabs.Indicator />
                         </Tabs.Tab>
+                        <Tabs.Tab id="logs">
+                            Logs
+                            <Tabs.Indicator />
+                        </Tabs.Tab>
                         <Tabs.Tab id="server-man">
                             Server Management
                             <Tabs.Indicator />
@@ -169,6 +199,43 @@ const ServerManagement = () => {
                                 )
                         }
                     </div>
+                </Tabs.Panel>
+                <Tabs.Panel
+                    id="logs"
+                    className="w-full h-full"
+                >
+                    <div className="bg-gray-800 w-full h-2/3 overflow-scroll rounded-t-2x1 font-mono">
+                        { /* TODO: Prevent rendering of massive log outputs, possible by pagination */ }
+                        {log_content.split("\n").map(line => {
+                            return (
+                                <p>{line}</p>
+                            )
+                        })}
+                    </div>
+                    <Select
+                        value={selected_log}
+                        onChange={key => set_selected_log(key.toString())}
+                    >
+                        <Select.Trigger>
+                            <Select.Value />
+                            <Select.Indicator />
+                        </Select.Trigger>
+                        <Select.Popover>
+                            <ListBox>
+                                {available_logs.map(log => {
+                                    return (
+                                        <ListBox.Item
+                                            id={log}
+                                            textValue={log}
+                                        >
+                                            {log}
+                                            <ListBox.ItemIndicator />
+                                        </ListBox.Item>
+                                    );
+                                })}
+                            </ListBox>
+                        </Select.Popover>
+                    </Select>
                 </Tabs.Panel>
                 <Tabs.Panel id="server-man">
                     <form onSubmit={e => {e.preventDefault(); renameServer()}}>

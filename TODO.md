@@ -17,8 +17,8 @@ designed specifically for Minecraft.
 1. Server Management
     - version upgrades
     - progress information on server creation
-2. Access to logs (both latest and historical) and crash reports
-    - sorted by descending date, obviously
+2. ~~Access to logs (both latest and historical) and crash reports~~
+    - ~~sorted by descending date, obviously~~
 2. ~~Server Templates with external version lists~~
     - ~~to support use of Piston API~~
 3. Add filtering by version channel
