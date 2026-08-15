@@ -27,3 +27,34 @@
   font-weight: 400;
   opacity: 0.5;
 } */
+
+@keyframes growFromUpperRight {
+  from {
+    transform: scale(0%, 0%);
+  }
+  to {
+    transform: scale(100%, 100%);
+  }
+}
+
+@keyframes shrinkToUpperRight {
+  from {
+    transform: scale(100%, 100%);
+  }
+  to {
+    transform: scale(0%, 0%);
+  }
+}
+
+.growFromUpperRight {
+  transform-origin: top right;
+  animation-name: growFromUpperRight;
+  animation-duration: 250ms;
+}
+
+.shrinkToUpperRight {
+  transform: scale(0%, 0%);
+  transform-origin: top right;
+  animation-name: shrinkToUpperRight;
+  animation-duration: 250ms;
+}

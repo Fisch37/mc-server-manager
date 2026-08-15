@@ -1,7 +1,9 @@
-import { Button, TextField, Input, Label, Select, ListBox, FieldError } from "@heroui/react";
+import { Button, TextField, Input, Label, Select, ListBox, FieldError, type Key } from "@heroui/react";
 import { useEffect, useState } from "react";
-import { getTemplates, type TemplateSummary } from "./api/template";
+import { getTemplates, type VersionInfo, type TemplateSummary } from "./api/template";
 import { createServer as createServerAPI } from "./api/server";
+import { Sliders } from "@gravity-ui/icons";
+import { useRef } from "react";
 
 const ServerCreator = () => {
     const [templates, set_templates] = useState<Array<TemplateSummary>>([]);
@@ -13,12 +15,34 @@ const ServerCreator = () => {
     const [chosen_name, set_chosen_name] = useState<string>("");
     const [chosen_template, set_chosen_template] = useState<string>("");
     const [chosen_version, set_chosen_version] = useState<string>("");
+    const [displayed_channels, set_displayed_channels] = useState<Array<string>>([]);
+    
+    const [template_version_channels, set_template_version_channels] = useState<Array<string>>([]);
+    const [template_versions, set_template_versions] = useState<Array<VersionInfo>>([]);
 
     useEffect(() => {
         getTemplates()
             .then(value => set_templates(value))
             .catch(e => console.error("Failed to get templates " + e))
     }, []);
+    useEffect(() => {
+        debugger;
+        let template = getTemplate(chosen_template);
+        if (template !== null) {
+            console.log("Helo!");
+            set_template_versions(template.versions);
+            let channels = template.versions.map(version => version.channel)
+            // https://stackoverflow.com/a/14438954/13095869
+            .filter((channel, index, array) => array.indexOf(channel) === index);
+            set_template_version_channels([...channels]);
+            set_displayed_channels([...channels]);
+            console.log(channels);
+            console.log(template.versions);
+            console.log(template.versions.filter(v => channels.includes(v.channel)));
+        } else {
+            console.debug("No template found");
+        }
+    }, [chosen_template]);
 
     async function createServer() {
         await createServerAPI(
@@ -27,6 +51,8 @@ const ServerCreator = () => {
             chosen_version
         );
     }
+
+    const [version_filter_opened, set_version_filter_opened] = useState<boolean>(false);
 
     return (
         <div>
@@ -76,7 +102,7 @@ const ServerCreator = () => {
                         name="version"
                         value={chosen_version}
                         onChange={key => set_chosen_version(key.toString())}
-                        isDisabled={chosen_template==""}
+                        isDisabled={!chosen_template}
                         placeholder="Please select a version"
                     >
                         <Label>Version</Label>
@@ -86,19 +112,64 @@ const ServerCreator = () => {
                         </Select.Trigger>
                         <Select.Popover>
                             <ListBox>
-                                {getTemplate(chosen_template)?.versions.map(version => (
-                                    // <option key={version} value={version}>{version}</option>
-                                    <ListBox.Item
-                                        id={version}
-                                        textValue={version}
-                                    >
-                                        {version}
-                                        <ListBox.ItemIndicator />
-                                    </ListBox.Item>
-                                ))}
+                                {template_versions
+                                    .filter(v => displayed_channels.includes(v.channel))
+                                    .map(v => v.id)
+                                    .map(version => (
+                                        <ListBox.Item
+                                            id={version}
+                                            textValue={version}
+                                            key={version}
+                                        >
+                                            {version}
+                                            <ListBox.ItemIndicator />
+                                        </ListBox.Item>
+                                    )
+                                )}
                             </ListBox>
                         </Select.Popover>
                     </Select>
+                    <div className="w-full flex">
+                        <div className="flex-grow">
+                            <div className={version_filter_opened ? "growFromUpperRight" : "shrinkToUpperRight"}>
+                                <Select
+                                    selectionMode="multiple"
+                                    value={displayed_channels}
+                                    isDisabled={!chosen_template}
+                                    onChange={keys => set_displayed_channels(keys as string[])}
+                                >
+                                    <Label>Visible Channels</Label>
+                                    <Select.Trigger>
+                                        <Select.Value />
+                                        <Select.Indicator />
+                                    </Select.Trigger>
+                                    <Select.Popover>
+                                        <ListBox selectionMode="multiple">
+                                            {template_version_channels.map(channel => (
+                                                <ListBox.Item
+                                                    id={channel}
+                                                    textValue={channel}
+                                                    key={channel}
+                                                >
+                                                    {channel}
+                                                    <ListBox.ItemIndicator />
+                                                </ListBox.Item>
+                                            ))}
+                                        </ListBox>
+                                    </Select.Popover>
+                                </Select>
+                            </div>
+                        </div>
+                        <Sliders
+                            onClick={() => {
+                                set_version_filter_opened(prev => !prev);
+                                console.log("Click!");
+                            }}
+                            width={18} height={18}
+                            className="flex-none mr-2"
+                            aria-label="Version Channel Filter"
+                        />
+                    </div>
                 </TextField>
                 <div className="grid">
                     <Button

@@ -21,7 +21,7 @@ designed specifically for Minecraft.
     - ~~sorted by descending date, obviously~~
 2. ~~Server Templates with external version lists~~
     - ~~to support use of Piston API~~
-3. Add filtering by version channel
+3. ~~Add filtering by version channel~~
 4. Add support for multi-stage versions
     - Fabric, Forge, and Neoforge keep independent versioning for their loaders.
 5. Mod Management
