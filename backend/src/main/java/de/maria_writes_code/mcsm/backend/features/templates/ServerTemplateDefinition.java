@@ -2,8 +2,10 @@ package de.maria_writes_code.mcsm.backend.features.templates;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.jspecify.annotations.NullMarked;
@@ -12,6 +14,8 @@ import org.jspecify.annotations.Nullable;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.Nulls;
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -20,8 +24,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
-import de.maria_writes_code.mcsm.backend.features.versions.VersionProvider;
-import de.maria_writes_code.mcsm.backend.features.versions.VersionSource;
+import de.maria_writes_code.mcsm.backend.features.components.ComponentIdentifier;
+import de.maria_writes_code.mcsm.backend.features.components.VersionCombo;
+import de.maria_writes_code.mcsm.backend.features.components.VersionProviderCollection;
 import de.maria_writes_code.mcsm.backend.utils.Utils;
 
 @JacksonXmlRootElement(localName = "template")
@@ -33,16 +38,45 @@ public record ServerTemplateDefinition(
     String name,
     @JacksonXmlProperty(localName = "abstract", isAttribute = true)
     boolean isAbstract,
+    @JacksonXmlProperty(isAttribute = true)
+    ComponentIdentifier type,
     @Nullable Parent parent,
-    Executable executable,
-    Versions versions,
+    @Nullable Executable executable,
     @JsonSetter(nulls = Nulls.AS_EMPTY)
     List<Overlay> overlays
 ) {
+    public ServerTemplateDefinition {
+        Utils.throwIfNullMany(
+            () -> new IllegalArgumentException("id, name, components, and overlays cannot be null"),
+            id, name, overlays
+        );
+        if (parent == null && executable  == null)
+            throw new IllegalArgumentException("base templates must specify an executable");
+    }
+
+    /**
+     * Returns a stream of this template and all its parents in ascending order.
+     */
+    public Stream<ServerTemplateDefinition> getHierarchy(TemplateProvider templateProvider) {
+        ServerTemplate parentTemplate;
+        return Stream.concat(
+            Stream.of(this),
+            parent == null
+                ? Stream.empty()
+                : (
+                    (parentTemplate = templateProvider.getTemplate(parent.id)) == null
+                    ? Stream.empty()
+                    : parentTemplate.getDefinition().getHierarchy(templateProvider)
+                )
+        );
+    }
+
     @JacksonXmlRootElement(localName = "parent")
     public record Parent(
         @JacksonXmlProperty(isAttribute = true)
-        String id
+        String id,
+        @JacksonXmlProperty(localName = "inherit-executable", isAttribute = true)
+        boolean inheritExecutable
     ) { }
 
     @JacksonXmlRootElement(localName = "executable")
@@ -56,6 +90,10 @@ public record ServerTemplateDefinition(
         ArrayList<String> arguments
     ) {
         public Executable {
+            Utils.throwIfNullMany(
+                () -> new IllegalArgumentException("template executable must have a file and a terminator"),
+                file, terminator
+            );
             checkDoesNotEscapeRoot(file, "executable location");
         }
     }
@@ -91,69 +129,77 @@ public record ServerTemplateDefinition(
         @Type(value = ServerTemplateDefinition.VersionRange.class)
     })
     public static interface VersionRangeSpecifier {
-        boolean contains(
-            String versionId,
-            Collection<ServerTemplateDefinition.Version> reference
-        );
+        boolean contains(VersionCombo version, VersionProviderCollection versionProviders);
     }
 
     @JacksonXmlRootElement(localName = "version")
     public record Version(
-        @JacksonXmlProperty(isAttribute = true)
-        String id,
-        @JacksonXmlProperty(isAttribute = true)
-        @Nullable String channel
-    ) implements VersionRangeSpecifier {
+        @JsonAnyGetter @JsonAnySetter
+        Map<String, String> values
+    ) implements VersionRangeSpecifier, VersionCombo {
         @Override
-        public boolean contains(String versionId, Collection<Version> reference) {
-            return this.id.equals(versionId);
+        public boolean contains(VersionCombo version, VersionProviderCollection versionProviders) {
+            return values.entrySet()
+                .stream()
+                .allMatch(entry ->
+                    // check if constraints match this version
+                    version.getVersion(entry.getKey())
+                        .map(vId -> vId.equals(entry.getValue()))
+                        // if no matching version exists, cannot be a match
+                        .orElse(false)
+                );
+        }
+
+        @Override
+        public Map<String, String> getVersions() {
+            return Collections.unmodifiableMap(values);
+        }
+
+        @Override
+        public Optional<String> getVersion(String versionSourceId) {
+            return Optional.ofNullable(values.get(versionSourceId));
         }
     }
 
     @JacksonXmlRootElement(localName = "version-range")
     public record VersionRange(
-        @JacksonXmlProperty(isAttribute = true)
-        String first,
-        @JacksonXmlProperty(isAttribute = true)
-        String last
+        @JsonAnyGetter @JsonAnySetter
+        Map<String, RangedVersionId> ranges
     ) implements VersionRangeSpecifier {
         @Override
-        public boolean contains(String versionId, Collection<Version> reference) {
-            var firstIdx = Utils.indexOf(reference, v -> v.id, first);
-            var lastIdx = Utils.indexOf(reference, v -> v.id, last);
-            var checkIdx = Utils.indexOf(reference, v -> v.id, versionId);
-
-            return checkIdx >= firstIdx && checkIdx <= lastIdx;
+        public boolean contains(VersionCombo version, VersionProviderCollection versionProviders) {
+            return ranges.entrySet()
+                .stream()
+                .allMatch(entry -> {
+                    var provider = versionProviders.getProvider(entry.getKey());
+                    if (provider == null)
+                        return false;
+                    int testIdx = version.getVersion(entry.getKey())
+                        .map(vId -> indexOf(entry.getKey(), vId, versionProviders))
+                        .orElse(-1);
+                    if (testIdx == -1)
+                        return false;
+                    int firstIdx = indexOf(entry.getKey(), entry.getValue().first, versionProviders);
+                    int lastIdx = indexOf(entry.getKey(), entry.getValue().last, versionProviders);
+                    return firstIdx >= testIdx && testIdx <= lastIdx;
+                });
         }
-        
-    }
 
-    public record Versions(
-        @JacksonXmlProperty(isAttribute = true)
-        @Nullable
-        VersionSource src,
-        @JacksonXmlElementWrapper(useWrapping = false)
-        @JsonSetter(nulls = Nulls.AS_EMPTY)
-        List<Version> explicitVersions
-    ) {
-        public Stream<Version> getAllVersions(VersionProvider provider) {
-            if (!provider.getIdentifier().equals(src)) {
-                throw new IllegalStateException(
-                    "Received incorrect version provider. Expected "
-                    + src + " got " + provider.getIdentifier()
-                );
+        private static int indexOf(String key, String value, VersionProviderCollection versionProviders) {
+            var provider = versionProviders.getProvider(key);
+            if (provider == null) {
+                return -1;
+            } else {
+                return provider.indexOf(value);
             }
-            return Stream.concat(
-                provider.getVersions()
-                    .stream()
-                    .map(canonicalVersion -> new Version(
-                        canonicalVersion.id(),
-                        canonicalVersion.channel()
-                    ))
-                ,
-                explicitVersions.stream()
-            );
         }
+
+        public record RangedVersionId(
+            @JacksonXmlProperty(isAttribute = true)
+            String first,
+            @JacksonXmlProperty(isAttribute = true)
+            String last
+        ) { }
     }
 
     private static void checkDoesNotEscapeRoot(Path path, String fieldName) {

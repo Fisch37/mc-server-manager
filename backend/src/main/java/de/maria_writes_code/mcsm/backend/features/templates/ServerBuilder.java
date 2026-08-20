@@ -1,16 +1,22 @@
 package de.maria_writes_code.mcsm.backend.features.templates;
 
 import java.io.IOException;
+import java.util.LinkedHashMap;
+import java.util.stream.Collectors;
+
 import org.jspecify.annotations.NullMarked;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import de.maria_writes_code.mcsm.backend.AppConfig;
+import de.maria_writes_code.mcsm.backend.features.components.ComponentRegistry;
+import de.maria_writes_code.mcsm.backend.features.components.VanillaVersionRegistry;
+import de.maria_writes_code.mcsm.backend.features.components.VersionCombo;
+import de.maria_writes_code.mcsm.backend.features.components.VersionProviderCollection;
 import de.maria_writes_code.mcsm.backend.features.server.ActiveServer;
 import de.maria_writes_code.mcsm.backend.features.server.Server;
 import de.maria_writes_code.mcsm.backend.features.server.ServerManager;
-import de.maria_writes_code.mcsm.backend.features.versions.VersionRegistry;
 import de.maria_writes_code.mcsm.backend.utils.Utils;
 
 @NullMarked
@@ -22,38 +28,40 @@ public class ServerBuilder {
 
     public ServerBuilder(ServerBuilder.Context context) {
         this.context = context;
-        server = new Server(null, null);
+        server = new Server(null, new LinkedHashMap<>());
     }
 
     public ServerBuilder setName(String name) {
         server.setName(name);
         return this;
     }
-    public ServerBuilder setVersion(String versionId) throws IOException {
-        if (!Utils.contains(
-            template.getDefinition()
-                .versions()
-                .getAllVersions(context.versionRegistry),
-            v -> v.id(),
-            versionId
-        )) {
-            throw new IllegalArgumentException(
-                "Template %s does not support version %s".formatted(
-                    template.getDefinition().name(),
-                    versionId
-                )
-            );
+    public ServerBuilder setVersions(VersionCombo versionIds) throws IOException {
+        for (var entry : versionIds.getVersions().entrySet()) {
+            var versionProviderId = entry.getKey();
+            var versionId = entry.getValue();
+            var source = context.versionProviderCollection.getProvider(versionProviderId);
+            if (source == null) {
+                throw new IllegalArgumentException(
+                    "Version source %s does not exist".formatted(versionProviderId)
+                );
+            }
+            var version = source.getVersionInfo(versionId);
+            if (version == null) {
+                throw new IllegalArgumentException(
+                    "Version %s does not exist on server %s".formatted(
+                        versionId, versionProviderId
+                    )
+                );
+            }
+            server.setCurrentVersionId(versionProviderId, versionId);
+            // TODO: This incorporates exceptionally special handling of java versions
+            //  in a way that is not compatible with most version providers.
+            //  It must be replaced with a system better suited to versions without javaVersion information.
+            var details = version.fetchVersionDetails();
+            if (server.getJavaVersion() < details.javaVersion()) {
+                server.setJavaVersion(details.javaVersion());
+            }
         }
-        var version = context.versionRegistry.getVersionInfo(versionId);
-        if (version == null) {
-            throw new IllegalArgumentException(
-                "Version %s does not exist on the remote server".formatted(
-                    versionId
-                )
-            );
-        }
-        server.setCurrentVersionId(versionId);
-        server.setJavaVersion(version.fetchVersionDetails().javaVersion());
         
         return this;
     }
@@ -68,7 +76,16 @@ public class ServerBuilder {
         if (server.getName() == null) {
             throw new IllegalStateException("Server does not have a name");
         }
-        if (server.getCurrentVersionId() == null) {
+        if (
+            !server.getCurrentVersionIds().keySet()
+                .containsAll(
+                    template.getDefinition().getHierarchy(context.templateProvider)
+                        .map(template -> context.componentRegistry.getComponent(template.type()))
+                        .flatMap(c -> c.getVersionProviders().stream())
+                        .map(vp -> vp.getSourceIdentifier())
+                        .collect(Collectors.toSet())
+                )
+        ) {
             throw new IllegalStateException("Server does not have a version");
         }
         if (template == null || !template.getDefinition().id().equals(server.getTemplateId())) {
@@ -77,7 +94,7 @@ public class ServerBuilder {
         server.setLastExitCode(0);
         template.apply(
             context.config.getServerLocation().resolve(server.getId().toString()),
-            server.getCurrentVersionId()
+            new VersionCombo.Mapped(server.getCurrentVersionIds())
         );
         return new ActiveServer(context.activeServerContext, server);
     }
@@ -85,13 +102,20 @@ public class ServerBuilder {
     @Component
     public static class Context implements InitializingBean {
         @Autowired
-        private VersionRegistry versionRegistry;
+        private VanillaVersionRegistry versionRegistry;
         @Autowired
         private AppConfig config;
         @Autowired
         private ActiveServer.Context activeServerContext;
         @Autowired
         private ServerManager _serverManager;
+        
+        @Autowired
+        private TemplateProvider templateProvider;
+        @Autowired
+        private ComponentRegistry componentRegistry;
+        @Autowired
+        private VersionProviderCollection versionProviderCollection;
         
         @Override
         public void afterPropertiesSet() throws Exception {

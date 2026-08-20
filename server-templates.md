@@ -23,53 +23,37 @@ The following is an annotated example structure for a `template.xml` file.
     If present, the "abstract" property indicates that this template should not be publicly visible.
     This is useful if the template is used as a parent template and is not launchable on its own.
 -->
-<template id="example-template" abstract="">
+<template
+    id="example-template"
+    abstract=""
+    type="fabric"
+>
     <!-- This is the name of the template that will be shown to users -->
     <name>Example Server Template</name>
     <!--
         If specified, this template will be applied before the current one.
         Note that if a parent is specified, the following options need not be provided:
-            - versions
             - executable
-        If they are specified, they override the parent values.
+        If they are specified, they override the parent values,
+        unless "inherit-executable" is set to true, in which case
+        the executable of this template and its parent template are downloaded.
+        Note that it is a logic error if multiple executables have the same name.
     -->
-    <parent id="vanilla" />
-    <!--
-        Specifies how this server should be executed.
-        "file" should be a path to the target jar.
-        The executable file will automatically be fetched
-        from the version registry when creating the server,
-        so it needn't be included via files or overlays.
-    -->
+    <parent
+        id="minecraft-vanilla"
+        inherit-executable="true"
+    />
+    
     <executable file="server.jar">
-        <!--
-            How the server can be terminated.
-            Accepts one of "command" or "signal"
-            (both are shown here for the sake of documentation)
-        -->
         <terminator>
             <!-- The text to send on the command line -->
             <command>/stop</command>
             <!-- Terminate the process by sending SIGTERM -->
             <signal />
         </terminator>
-        <argument>-Xmx4G</argument>
-        <argument>-Xms4G</argument>
+        <argument>-Xmx2G</argument>
+        <argument>-Xms2G</argument>
     </executable>
-    <!--
-        The supported versions.
-        If the "src" property is specified, it must refer to a recognised version source
-            (currently only "vanilla") is allowed.
-        Additionally to the version source (if present),
-            a manual list of versions may be provided.
-        If a listed version does not exist when the template is loaded, it will be ignored.
-    -->
-    <versions src="vanilla">
-        <!-- can optionally include a "channel" property to specify a release channel -->
-        <version id="1.21.11" />
-        <version id="1.21.10" />
-        <!-- etc -->
-    </version>
     <!--
         This is the optional list of overlays.
         If it is not present, no overlays are provided.
@@ -82,14 +66,27 @@ The following is an annotated example structure for a `template.xml` file.
         <overlay location="example-overlay">
             <!-- The versions for which this overlay applies -->
             <versions>
-                <version id="1.21.1" />
+                <version>
+                    <vanilla>1.21.11</vanilla>
+                    <fabric-loader>0.16.11</fabric-loader>
+                </version>
+                <version>
+                    <!--
+                        Elided versions act as wildcards.
+                        Therefore this would be
+                        [vanilla=1.21.10, fabric-loader=*, fabric-installer=*]
+                    -->
+                    <vanilla>1.21.10</vanilla>
+                </version>
                 <!--
                 Specifies a range of versions over the list of supported versions.
                 The overlay is applied for all versions starting from the "first" version and ending with the "last" version (both inclusive).
                 
                 Either property may be left unspecified, in which case the version range expands to the limits of the supported versions list.
                 -->
-                <version-range first="1.20.0" last="1.20.6">
+                <version-range>
+                    <vanilla first="1.20.1" last="1.20.6" />
+                </version-range>
             </versions>
         </overlay>
     </overlays>

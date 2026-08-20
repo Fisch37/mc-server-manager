@@ -1,4 +1,4 @@
-package de.maria_writes_code.mcsm.backend.features.versions;
+package de.maria_writes_code.mcsm.backend.features.components;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -10,15 +10,15 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 import de.maria_writes_code.mcsm.backend.utils.Utils;
 
-public enum VersionSource {
+public enum ComponentIdentifier {
     Vanilla("vanilla")
     ;
 
-    private static final Map<String, VersionSource> NAME_MAP = Arrays.stream(VersionSource.values())
-        .collect(Collectors.toUnmodifiableMap(VersionSource::getSerializedName, Function.identity()));
+    private static final Map<String, ComponentIdentifier> NAME_MAP = Arrays.stream(ComponentIdentifier.values())
+        .collect(Collectors.toUnmodifiableMap(c -> c.getSerializedName(), Function.identity()));
     private final String serialized;
 
-    VersionSource(String serialized) {
+    ComponentIdentifier(String serialized) {
         this.serialized = serialized;
     }
 
@@ -28,7 +28,7 @@ public enum VersionSource {
     }
 
     @JsonCreator
-    public static VersionSource fromSerializedName(String serialized) {
+    public static ComponentIdentifier fromSerializedName(String serialized) {
         return Utils.throwIfNull(
             NAME_MAP.get(serialized),
             () -> new IllegalArgumentException("String \"%s\" does not correspond to a VersionSource".formatted(serialized))

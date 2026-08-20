@@ -22,8 +22,11 @@ designed specifically for Minecraft.
 2. ~~Server Templates with external version lists~~
     - ~~to support use of Piston API~~
 3. ~~Add filtering by version channel~~
+4. Proper feedback on actions (Server Create, Server Start, Stop, Restart)
 4. Add support for multi-stage versions
     - Fabric, Forge, and Neoforge keep independent versioning for their loaders.
+5. Support for custom components and versioning in templates
+    - should allow for manually specified versions (to match with overlays)
 5. Mod Management
     - only for non-vanilla instances
         - best marked as a template property

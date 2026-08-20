@@ -21,12 +21,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import de.maria_writes_code.mcsm.backend.AppConfig;
+import de.maria_writes_code.mcsm.backend.features.components.ComponentRegistry;
+import de.maria_writes_code.mcsm.backend.features.components.VanillaVersionRegistry;
 import de.maria_writes_code.mcsm.backend.features.runtimes.NoSuchRuntimeException;
 import de.maria_writes_code.mcsm.backend.features.runtimes.RuntimeProvider;
 import de.maria_writes_code.mcsm.backend.features.templates.ServerTemplate;
 import de.maria_writes_code.mcsm.backend.features.templates.TemplateProvider;
-import de.maria_writes_code.mcsm.backend.features.versions.Version;
-import de.maria_writes_code.mcsm.backend.features.versions.VersionRegistry;
 import de.maria_writes_code.mcsm.backend.utils.Observable;
 import de.maria_writes_code.mcsm.backend.utils.ReadOnlyObserver;
 import de.maria_writes_code.mcsm.backend.utils.Utils;
@@ -68,10 +68,6 @@ public class ActiveServer {
 
     public Path getLocation() {
         return context.appConfig.getServerLocation().resolve(id.toString());
-    }
-
-    public @Nullable Version getVersion() {
-        return context.versionRegistry.getVersionInfo(server.getCurrentVersionId());
     }
 
     public ServerStatus getStatus() {
@@ -217,11 +213,14 @@ public class ActiveServer {
         // @Autowired
         private ServerManager serverManager;
         @Autowired
-        private VersionRegistry versionRegistry;
+        private VanillaVersionRegistry versionRegistry;
         @Autowired
         private TemplateProvider templateProvider;
         @Autowired
         private RuntimeProvider runtimeProvider;
+        @Autowired
+        private ComponentRegistry componentRegistry;
+
         @Override
         public void afterPropertiesSet() throws Exception {
             Utils.requireNonNull(appConfig, repo, versionRegistry, templateProvider, runtimeProvider);

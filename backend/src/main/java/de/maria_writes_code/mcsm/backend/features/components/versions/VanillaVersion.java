@@ -1,10 +1,12 @@
-package de.maria_writes_code.mcsm.backend.features.versions;
+package de.maria_writes_code.mcsm.backend.features.components.versions;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.Map;
+import java.util.Optional;
 
 import org.apache.commons.lang3.NotImplementedException;
 import org.jspecify.annotations.Nullable;
@@ -13,10 +15,11 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import de.maria_writes_code.mcsm.backend.features.components.VersionCombo;
 import de.maria_writes_code.mcsm.backend.utils.Mutex;
 
-public class VanillaVersion implements Version {
-    static final ObjectMapper MAPPER = new ObjectMapper()
+public class VanillaVersion implements Version, VersionCombo {
+    public static final ObjectMapper MAPPER = new ObjectMapper()
         .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
     ;
 
@@ -91,6 +94,20 @@ public class VanillaVersion implements Version {
             }
 
             this(versionId, majorVersion.asInt(), url, sha1);
+        }
+    }
+
+    @Override
+    public Map<String, String> getVersions() {
+        return Map.of("vanilla", id);
+    }
+
+    @Override
+    public Optional<String> getVersion(String versionSourceId) {
+        if ("vanilla".equals(versionSourceId)) {
+            return Optional.of(id);
+        } else {
+            return Optional.empty();
         }
     }
 }

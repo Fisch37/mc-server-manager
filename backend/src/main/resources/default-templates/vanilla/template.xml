@@ -1,0 +1,14 @@
+<template
+    id="vanilla"
+    type="vanilla"
+>
+    <name>Vanilla</name>
+    <executable file="server.jar">
+        <terminator>
+            <command>/stop</command>
+            <signal />
+        </terminator>
+        <argument>-Xmx2G</argument>
+        <argument>-Xms2G</argument>
+    </executable>
+</template>

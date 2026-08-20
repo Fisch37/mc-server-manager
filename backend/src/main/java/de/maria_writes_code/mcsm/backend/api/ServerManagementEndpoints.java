@@ -3,6 +3,7 @@ package de.maria_writes_code.mcsm.backend.api;
 import static de.maria_writes_code.mcsm.backend.api.EndpointConsts.NO_SERVER_EXISTS;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import de.maria_writes_code.mcsm.backend.features.components.VersionCombo;
 import de.maria_writes_code.mcsm.backend.features.server.ActiveServer;
 import de.maria_writes_code.mcsm.backend.features.server.ServerManager;
 import de.maria_writes_code.mcsm.backend.features.server.ServerStatus;
@@ -110,11 +112,11 @@ public class ServerManagementEndpoints {
             this(server.getId(), server.getServer().getName(), server.getStatus());
         }
     }
-    public record ServerBuilderObject(String name, String template, String version) {
+    public record ServerBuilderObject(String name, String template, Map<String, String> versions) {
         public void apply(ServerBuilder builder, TemplateProvider templates) throws IOException {
             builder.setName(name)
                 .setTemplate(templates.getTemplate(template))
-                .setVersion(version);
+                .setVersions(new VersionCombo.Mapped(versions));
         }
     }
 }

@@ -1,4 +1,4 @@
-package de.maria_writes_code.mcsm.backend.features.versions;
+package de.maria_writes_code.mcsm.backend.features.components.versions;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorColumn;

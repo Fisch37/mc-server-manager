@@ -6,8 +6,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Optional;
-import java.util.stream.Collectors;
-
 import org.apache.commons.io.FileUtils;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.beans.factory.InitializingBean;
@@ -16,7 +14,9 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 
-import de.maria_writes_code.mcsm.backend.features.versions.VersionRegistry;
+import de.maria_writes_code.mcsm.backend.features.components.ComponentRegistry;
+import de.maria_writes_code.mcsm.backend.features.components.VersionCombo;
+import de.maria_writes_code.mcsm.backend.features.components.VersionProviderCollection;
 import de.maria_writes_code.mcsm.backend.utils.Utils;
 
 @NullMarked
@@ -73,14 +73,20 @@ public class ServerTemplate {
         return location.resolve(TEMPLATE_OVERLAY_LOC);
     }
 
-    public void apply(Path path, String versionId) throws IOException {
+    public void apply(Path path, VersionCombo version) throws IOException, IllegalArgumentException {
+        apply(path, version, true);
+    }
+    private void apply(Path path, VersionCombo version, boolean downloadExecutable) throws IOException, IllegalArgumentException {
         var parentTemplate = Optional.ofNullable(definition.parent())
             .map(parent -> parent.id())
             // TODO: Throw an error or warning when the parent template is specified, but does not exist
             .flatMap(parentId -> Optional.ofNullable(context.templateProvider.getTemplate(parentId)))
             .orElse(null);
         if (parentTemplate != null)
-            parentTemplate.apply(path, versionId);
+            parentTemplate.apply(
+                path, version,
+                definition.executable() == null || definition.parent().inheritExecutable()
+            );
 
         FileUtils.copyDirectory(getFilesLocation().toFile(), path.toFile());
         for (var overlay : definition.overlays()) {
@@ -88,10 +94,8 @@ public class ServerTemplate {
                 overlay.versions()
                     .stream()
                     .anyMatch(v -> v.contains(
-                        versionId,
-                        definition.versions()
-                            .getAllVersions(context.versionRegistry)
-                            .collect(Collectors.toList())
+                        version,
+                        context.versionProviders
                     ))
             ) {
                var overlay_src = getOverlayLocation().resolve(overlay.location());
@@ -99,15 +103,23 @@ public class ServerTemplate {
             }
         }
 
-        context.versionRegistry.getExecutable(versionId, path.resolve(definition.executable().file()));
+        if (downloadExecutable) {
+            context.componentRegistry.getComponent(definition.type())
+                .fetchExecutableGeneric(
+                    version,
+                    path.resolve(definition.executable().file())
+                );
+        }
     }
 
     @Component
     public static class Context implements InitializingBean {
-        @Autowired
-        private VersionRegistry versionRegistry;
         // @Autowired
         private TemplateProvider templateProvider;
+        @Autowired
+        private ComponentRegistry componentRegistry;
+        @Autowired
+        private VersionProviderCollection versionProviders;
         
         public void setTemplateProvider(TemplateProvider templateProvider) {
             this.templateProvider = templateProvider;
@@ -115,7 +127,7 @@ public class ServerTemplate {
 
         @Override
         public void afterPropertiesSet() throws Exception {
-            Utils.requireNonNull(versionRegistry);
+            Utils.requireNonNull(componentRegistry, versionProviders);
         }
     }
 }

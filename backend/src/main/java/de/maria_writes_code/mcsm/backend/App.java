@@ -38,7 +38,6 @@ public class App implements InitializingBean {
         //         java.nio.file.Path.of("/home/maria/Documents/mc-server-manager/run/runtimes")
         //     );
         // } catch (java.io.IOException e) {
-        //     // TODO Auto-generated catch block
         //     e.printStackTrace();
         //     return;
         // }

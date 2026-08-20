@@ -1,5 +1,7 @@
 package de.maria_writes_code.mcsm.backend.features.server;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import org.jspecify.annotations.NullUnmarked;
@@ -18,8 +20,7 @@ public class Server {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
-    private String currentVersionId;
+    private LinkedHashMap<String, String> currentVersionIds;
 
     @Column(nullable = false)
     private String templateId;
@@ -27,19 +28,18 @@ public class Server {
     private int lastExitCode;
     private int javaVersion;
 
-    // TODO: Is this safe for JPA, which will want to set its own ids?
     public Server() {
         id = UUID.randomUUID();
     }
-    public Server(String name, String version) {
+    public Server(String name, Map<String, String> versionIds) {
         this();
         this.name = name;
-        this.currentVersionId = version;
+        this.currentVersionIds = new LinkedHashMap<>(versionIds);
     }
     public Server(Server original) {
         id = original.id;
         name = original.name;
-        currentVersionId = original.currentVersionId;
+        currentVersionIds = new LinkedHashMap<>(original.currentVersionIds);
         templateId = original.templateId;
         
         lastExitCode = original.lastExitCode;
@@ -58,11 +58,17 @@ public class Server {
         this.name = name;
     }
 
-    public String getCurrentVersionId() {
-        return currentVersionId;
+    public String getCurrentVersionId(String versionSourceId) {
+        return currentVersionIds.get(versionSourceId);
     }
-    public void setCurrentVersionId(String versionId) {
-        this.currentVersionId = versionId;
+    public void setCurrentVersionId(String versionSourceid, String versionId) {
+        currentVersionIds.put(versionSourceid, versionId);
+    }
+    public void popCurrentVersionId(String versionSourceId) {
+        currentVersionIds.remove(versionSourceId);
+    }
+    public Map<String, String> getCurrentVersionIds() {
+        return currentVersionIds;
     }
 
     public String getTemplateId() {

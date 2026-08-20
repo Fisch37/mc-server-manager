@@ -10,7 +10,9 @@ Create a new server from a template.
 
 Request Body: A [server builder object](#server-builder-object)
 
-Response: A [server object](#server-object)
+Response:
+    - A [server object](#server-object)
+    - 409 Conflict, if one or more of the specified versions doesn't exist
 
 ### GET /server/list
 Get a list of servers.
@@ -162,7 +164,9 @@ Get information about a single template.
 {
     "name": <string>,
     "template": <template id string>,
-    "version": <version string>
+    "versions": {
+        <version source identifier string>: <version string>
+    }
 }
 ```
 
@@ -199,12 +203,23 @@ Get information about a single template.
     "name": <cleartext string>,
     "has_mods": <boolean>,
     "versions": [
+        <version source object>*
+    ]
+}
+```
+
+### Version Source Object
+```json
+{
+    "source_id": <version source identifier string>,
+    "friendly_name": <string>,
+    "versions": [
         <version info object>*
     ]
 }
 ```
 
-### Version Info
+### Version Info Object
 ```json
 {
     "id": <version string>,

@@ -81,6 +81,17 @@ public abstract sealed class Utils permits Utils.Seal {
         }
     }
 
+    public static <E extends Throwable> void throwIfNullMany(
+        Supplier<E> errorSupplier,
+        Object... objects
+    ) throws E {
+        for (var o : objects) {
+            if (o == null) {
+                throw errorSupplier.get();
+            }
+        }
+    }
+
     public static <T> @NonNull T or(
         @Nullable T value,
         @NonNull T defaultValue
