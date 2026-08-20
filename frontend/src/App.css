@@ -58,3 +58,18 @@
   animation-name: shrinkToUpperRight;
   animation-duration: 250ms;
 }
+
+@keyframes moveOutOfView {
+  from {
+    transform: translateX(0%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+.moveOutOfView {
+  transform: translateX(100%);
+  animation-name: moveOutOfView;
+  animation-duration: 500ms;
+}

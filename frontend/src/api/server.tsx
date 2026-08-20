@@ -1,4 +1,4 @@
-import { fetchApi, WS_ROOT } from "./shared";
+import { fetchApi, getWSUrl } from "./shared";
 
 export type StatusValue = "stopping"|"stopped"|"crashed"|"starting"|"started";
 
@@ -37,7 +37,7 @@ export function isStatusAlive(status: StatusValue): boolean {
 export async function createServer(
     name: string,
     template: string,
-    version: string
+    versions: { [source_id: string]: string }
 ) {
     await fetchApi(
         `/server/new`,
@@ -45,7 +45,7 @@ export async function createServer(
         JSON.stringify({
             name,
             template,
-            version
+            versions
         })
     )
 }
@@ -132,11 +132,4 @@ async function openWS(url: string): Promise<WebSocket> {
     })
     await open_promise;
     return socket;
-}
-
-function getWSUrl(path: string): URL {
-    let url = new URL(window.location.href);
-    url.protocol = "ws:";
-    url.pathname = `${WS_ROOT}${path}`;
-    return url;
 }

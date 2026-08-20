@@ -1,16 +1,48 @@
-import { Button, Chip, Input, ListBox, Select, Tabs } from "@heroui/react";
+import { Button, Chip, Input, ListBox, Select, Tabs, type AlertVariants } from "@heroui/react";
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router";
 import {
-    getServerInfo, isStatusAlive, restartServer, sendConsole as sendConsoleAPI,
+    getServerInfo, isStatusAlive, restartServer as restartServerAPI, sendConsole as sendConsoleAPI,
     renameServer as renameServerAPI, deleteServer as deleteServerAPI,
-    startServer, stopServer, openServerStatusSocket,
+    startServer as startServerAPI, stopServer as stopServerAPI, openServerStatusSocket,
     openConsoleSocketSync
 } from "./api/server";
 import type { ConsoleBacklog, ConsoleLine, Server, StatusValue, TypedSocket } from "./api/server";
 import { getLogContent, getLogFiles } from "./api/log";
+import { alertApiError } from "./utils";
+import type { AlertInfo } from "./AlertQueue";
+import type { ApiError } from "./api/shared";
 
 const WS_CLOSING_STATES: Array<number> = [WebSocket.CLOSING, WebSocket.CLOSED];
+
+type AlertInfoEdits = {
+    status?: AlertVariants["status"],
+    title?: string,
+    description?: string|React.JSX.Element,
+    elements?: Array<React.JSX.Element>
+};
+
+function alertApiErrorImproved(
+    e: any,
+    preset: AlertInfo,
+    handlers: {[response_code: number]: () => AlertInfoEdits},
+    other: (e: ApiError) => AlertInfoEdits,
+    unknown: () => AlertInfoEdits
+) {
+    let handlers_wrapped = {};
+    for (let key in handlers) {
+        handlers_wrapped[key] = () => {
+            let res = handlers[key]()
+            return {...preset, ...res}
+        }
+    }
+    alertApiError(
+        e,
+        handlers_wrapped,
+        error => ({...preset, ...other(error)}),
+        () => ({...preset, ...unknown()})
+    );
+}
 
 const ServerManagement = () => {
     const server_id = useParams().server_id;
@@ -36,12 +68,14 @@ const ServerManagement = () => {
                 set_server_new_name(value.name);
                 set_server_status(value.status);
             })
-            .catch(e => console.error(`Failed to get server info ${e}`))
+            .catch(e => {
+                console.error("Failed to get server info")
+                console.error(e);
+            })
     }
 
     function scrollConsoleToEnd() {
-        // TODO: This leaves one line hidden
-        console_end.current?.scrollTo(0, console_end.current?.scrollHeight);
+        console_end.current?.scrollIntoView(false);
     }
 
     useEffect(fetchAndSetServerInfo, []);
@@ -50,8 +84,16 @@ const ServerManagement = () => {
             .then(socket => socket.addOnMessage(status => {
                 set_server_status(status.status);
             }))
-            .catch(e => console.error(`Failed to open status socket ${e}`));
+            .catch(e => {
+                console.error("Failed to open status socket");
+                console.error(e);
+                set_server_status(null);
+            });
     }, []);
+    useEffect(
+        () => scrollConsoleToEnd(),
+        [console_lines]
+    );
 
     useEffect(() => {
         if (isStatusAlive(server_status)) {
@@ -59,12 +101,9 @@ const ServerManagement = () => {
                 console_socket.current = openConsoleSocketSync(server_id);
                 console_socket.current.addOnMessage(message => {
                     if ("line" in message) {
-                        debugger;
                         set_console_lines(prev => [...prev, message.line]);
-                        scrollConsoleToEnd();
                     } else if ("backlog" in message) {
                         set_console_lines([...message.backlog]);
-                        scrollConsoleToEnd();
                     } else {
                         console.warn("Received unexpected message: " + message);
                     }
@@ -81,7 +120,10 @@ const ServerManagement = () => {
                     set_selected_log(files[0])
             }
         ).catch(
-            e => console.error("Failed to fetch log files: " + e)
+            e => {
+                console.error("Failed to fetch log files: ");
+                console.error(e);
+            }
         );
     }, []);
     useEffect(() => {
@@ -89,7 +131,10 @@ const ServerManagement = () => {
         getLogContent(server_id, selected_log).then(
             content => set_log_content(content)
         ).catch(
-            e => console.error("Failed to fetch log content: " + e)
+            e => {
+                console.error("Failed to fetch log content: ");
+                console.error(e);
+            }
         );
     }, [selected_log])
 
@@ -105,6 +150,102 @@ const ServerManagement = () => {
 
     async function deleteServer() {
         await deleteServerAPI(server_id);
+    }
+
+    async function startServer() {
+        try {
+            await startServerAPI(server_id);
+        } catch (e) {
+            alertApiErrorImproved(
+                e,
+                {
+                    status: "danger",
+                    title: "Failed to start server",
+                    description: "",
+                },
+                {
+                    409: () => ({
+                        status: "warning",
+                        description: "The server is already running"
+                    }),
+                    418: () => ({
+                        description: "No supported runtime is available"
+                    }),
+                    500: () => ({
+                        description: "Internal Server Error"
+                    })
+                },
+                error => ({
+                    description: `Unexpected status code: ${error}`
+                }),
+                () => ({
+                    description: "Unknown error occurred. Please check the log"
+                })
+            );
+        }
+    }
+
+    async function stopServer() {
+        try {
+            await stopServerAPI(server_id);
+        } catch (e) {
+            alertApiErrorImproved(
+                e,
+                {
+                    status: "danger",
+                    title: "Failed to start server",
+                    description: "",
+                },
+                {
+                    409: () => ({
+                        status: "warning",
+                        description: "The server is no longer running"
+                    }),
+                    500: () => ({
+                        description: "Internal Server Error"
+                    })
+                },
+                error => ({
+                    description: `Unexpected status code: ${error}`
+                }),
+                () => ({
+                    description: "Unknown error occurred. Please check the log"
+                })
+            );
+        }
+    }
+
+    async function restartServer() {
+        try {
+            await restartServerAPI(server_id);
+        } catch (e) {
+            alertApiErrorImproved(
+                e,
+                {
+                    status: "danger",
+                    title: "Failed to start server",
+                    description: "",
+                },
+                {
+                    409: () => ({
+                        status: "warning",
+                        description: "The server is already running"
+                    }),
+                    418: () => ({
+                        description: "No supported runtime is available"
+                    }),
+                    500: () => ({
+                        description: "Internal Server Error"
+                    })
+                },
+                error => ({
+                    description: `Unexpected status code: ${error}`
+                }),
+                () => ({
+                    description: "Unknown error occurred. Please check the log"
+                })
+            );
+        }
     }
 
     return (
@@ -170,12 +311,12 @@ const ServerManagement = () => {
                     className="w-full h-full"
                 >
                     <div
-                        ref={console_end}
                         className="bg-gray-800 w-full h-2/3 overflow-scroll rounded-t-2x1 font-mono"
                     >
                         {console_lines.map(line => (
                             <p>{line}</p>
                         ))}
+                        <div ref={console_end} />
                     </div>
                     <div>
                         <form
@@ -204,13 +345,13 @@ const ServerManagement = () => {
                                 isStatusAlive(server_status)
                                     ? (
                                         <div className="mx-auto size-fit">
-                                            <Button className="inline bg-red-500 mx-2" onClick={() => stopServer(server_id)}>Stop</Button>
-                                            <Button className="inline bg-blue-500" onClick={() => restartServer(server_id)}>Restart</Button>
+                                            <Button className="inline bg-red-500 mx-2" onClick={() => stopServer()}>Stop</Button>
+                                            <Button className="inline bg-blue-500" onClick={() => restartServer()}>Restart</Button>
                                         </div>
                                     )
                                     : (
                                         <div className="mx-auto size-fit">
-                                            <Button className="inline bg-green-500" onClick={() => startServer(server_id)}>Start</Button>
+                                            <Button className="inline bg-green-500" onClick={() => startServer()}>Start</Button>
                                         </div>
                                     )
                                 )

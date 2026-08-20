@@ -1,20 +1,28 @@
-// export const WS_ROOT: string = "localhost:8080";
-// const API_ROOT: string = "http://localhost:8080"
-const API_ROOT: string = "/api";
-export const WS_ROOT: string = "/api";
+const WS_ROOT = () => "ws://localhost:8080";
+const API_ROOT = () => "http://localhost:8080";
+// const API_ROOT: string = "/api";
+// const WS_ROOT: string = "/api";
+
+export type ApiError = {
+    type: "api_error"
+    response_code: number
+};
 
 export async function fetchApi(
-    url: string,
+    path: string,
     method: string="GET",
     body: string|null=null,
     content_type: string="application/json"
 ) {
     let response = await fetch(
-        `${API_ROOT}${url}`,
+        `${API_ROOT()}${path}`,
         {method, body, headers: {"Content-Type": content_type}}
     );
     if (!response.ok) {
-        throw `Unexpected status code ${response.status}: ${await response.text()}`
+        throw {
+            type: "api_error",
+            response_code: response.status
+        };
     }
     if (response.status == 204) {
         return undefined;
@@ -27,4 +35,8 @@ export async function fetchApi(
     } else {
         throw "Unexpected content type in API response: " + resp_content_type;
     }
+}
+
+export function getWSUrl(path: string): string {
+    return `${WS_ROOT()}${path}`;
 }
