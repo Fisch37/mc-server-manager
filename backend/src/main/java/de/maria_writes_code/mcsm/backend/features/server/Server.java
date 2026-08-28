@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import org.jspecify.annotations.NullUnmarked;
 
+import de.maria_writes_code.mcsm.backend.features.components.ComponentIdentifier;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -20,12 +21,16 @@ public class Server {
     @Column(nullable = false)
     private String name;
 
+    @Column(nullable = false)
+    private ComponentIdentifier type;
     private LinkedHashMap<String, String> currentVersionIds;
 
     @Column(nullable = false)
     private String templateId;
 
     private int lastExitCode;
+    // TODO: Extract this to some component independent structure
+    //  (Map of properties?)
     private int javaVersion;
 
     public Server() {
@@ -44,6 +49,7 @@ public class Server {
         
         lastExitCode = original.lastExitCode;
         javaVersion = original.javaVersion;
+        type = original.type;
     }
 
 
@@ -93,5 +99,18 @@ public class Server {
     }
     public boolean hasCrashed() {
         return lastExitCode != 0;
+    }
+
+    public ComponentIdentifier getType() {
+        return type;
+    }
+    public void setType(ComponentIdentifier type) {
+        this.type = type;
+    }
+
+    public Map<String, String> getProperties() {
+        return Map.of(
+            "java-version", Integer.toString(javaVersion)
+        );
     }
 }

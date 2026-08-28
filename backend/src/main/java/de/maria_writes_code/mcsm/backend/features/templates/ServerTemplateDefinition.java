@@ -26,7 +26,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 import de.maria_writes_code.mcsm.backend.features.components.ComponentIdentifier;
 import de.maria_writes_code.mcsm.backend.features.components.VersionCombo;
-import de.maria_writes_code.mcsm.backend.features.components.VersionProviderCollection;
+import de.maria_writes_code.mcsm.backend.features.components.versions.VersionProviderCollection;
 import de.maria_writes_code.mcsm.backend.utils.Utils;
 
 @JacksonXmlRootElement(localName = "template")
@@ -171,7 +171,7 @@ public record ServerTemplateDefinition(
             return ranges.entrySet()
                 .stream()
                 .allMatch(entry -> {
-                    var provider = versionProviders.getProvider(entry.getKey());
+                    var provider = versionProviders.getVersionProvider(entry.getKey());
                     if (provider == null)
                         return false;
                     int testIdx = version.getVersion(entry.getKey())
@@ -186,7 +186,7 @@ public record ServerTemplateDefinition(
         }
 
         private static int indexOf(String key, String value, VersionProviderCollection versionProviders) {
-            var provider = versionProviders.getProvider(key);
+            var provider = versionProviders.getVersionProvider(key);
             if (provider == null) {
                 return -1;
             } else {

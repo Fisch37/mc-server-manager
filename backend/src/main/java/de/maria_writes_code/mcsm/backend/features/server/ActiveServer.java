@@ -109,27 +109,17 @@ public class ActiveServer {
 
     
     public void start() throws NoSuchRuntimeException, IllegalStateException, IOException {
-        var executable = getTemplate().getDefinition().executable();
-        var runtime = context.runtimeProvider.getRuntimeSupporting(server.getJavaVersion());
-        if (runtime == null) {
-            throw new NoSuchRuntimeException("Runtime for server does not exist");
-        }
-        var args = new ArrayList<String>();
-        args.add(runtime.getExecutable().toString());
-        args.addAll(executable.arguments());
-        args.addAll(runtime.getArguments(getLocation().resolve(executable.file())));
-        var process = new ProcessBuilder(args)
-            .directory(getLocation().toFile())
-            .redirectErrorStream(true)
-            .start();
-        this.process = new ServerProcess(
-            process,
-            Terminator.create(executable.terminator()),
+        var executionHelper = context.componentRegistry.getComponent(server.getType())
+            .getExecutionHelper();
+        this.process = executionHelper.startServer(
+            getLocation(),
+            getTemplate(),
+            server.getProperties(),
             exitValue -> status.set(Utils.isExitCodeOk(exitValue) ? ServerStatus.Stopped : ServerStatus.Crashed)
         );
         status.set(ServerStatus.Starting);
         
-        // TODO: Wait for starting to finish
+        executionHelper.waitUntilStarted(process);
         status.set(ServerStatus.Started);
     }
 

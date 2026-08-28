@@ -3,23 +3,25 @@ package de.maria_writes_code.mcsm.backend.features.components;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.Map;
 
+import de.maria_writes_code.mcsm.backend.features.components.execution_helpers.ServerExecutionHelper;
 import de.maria_writes_code.mcsm.backend.features.components.versions.VersionProvider;
-import de.maria_writes_code.mcsm.backend.features.templates.ServerTemplate;
+import de.maria_writes_code.mcsm.backend.features.runtimes.NoSuchRuntimeException;
 
-public interface ServerComponent<T extends VersionCombo> {
+public interface ServerType<T extends VersionCombo> {
     ComponentIdentifier getIdentifier();
     Collection<? extends VersionProvider> getVersionProviders();
 
     /**
-     * Generic version of {@link ServerComponent#fetchExecutable} accepting any {@link VersionCombo},
+     * Generic version of {@link ServerType#fetchExecutable} accepting any {@link VersionCombo},
      * at the cost of a chance of failure via {@link IllegalArgumentException}.
      * @param versions Some VersionCombo that may or may not be compatible with {@link T}.
      * @param destination
      * @throws IOException
      * @throws IllegalArgumentException if the supplied <em>versions</em> are insufficient
      *  to convert into this component's {@link T}.
-     * @see ServerComponent#fetchExecutable
+     * @see ServerType#fetchExecutable
      */
     void fetchExecutableGeneric(VersionCombo versions, Path destination) throws IOException, IllegalArgumentException;
     /**
@@ -27,7 +29,13 @@ public interface ServerComponent<T extends VersionCombo> {
      * @param versions
      * @param destination
      * @throws IOException
+     * @throws NoSuchRuntimeException if a required runtime does not actually exist or is not available
+     * @throws IllegalStateException if a required property is not present or malformed
      */
     void fetchExecutable(T versions, Path destination) throws IOException;
-    void startServer(Path location, ServerTemplate template) throws IOException;
+    
+    ServerExecutionHelper getExecutionHelper();
+
+    Map<String, String> fetchVersionProperties(T versions) throws IOException;
+    Map<String, String> fetchVersionPropertiesGeneric(VersionCombo versions) throws IOException, IllegalArgumentException;
 }

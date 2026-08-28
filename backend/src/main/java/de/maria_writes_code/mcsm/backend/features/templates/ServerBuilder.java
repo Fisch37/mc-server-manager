@@ -13,7 +13,6 @@ import de.maria_writes_code.mcsm.backend.AppConfig;
 import de.maria_writes_code.mcsm.backend.features.components.ComponentRegistry;
 import de.maria_writes_code.mcsm.backend.features.components.VanillaVersionRegistry;
 import de.maria_writes_code.mcsm.backend.features.components.VersionCombo;
-import de.maria_writes_code.mcsm.backend.features.components.VersionProviderCollection;
 import de.maria_writes_code.mcsm.backend.features.server.ActiveServer;
 import de.maria_writes_code.mcsm.backend.features.server.Server;
 import de.maria_writes_code.mcsm.backend.features.server.ServerManager;
@@ -35,11 +34,11 @@ public class ServerBuilder {
         server.setName(name);
         return this;
     }
-    public ServerBuilder setVersions(VersionCombo versionIds) throws IOException {
+    public ServerBuilder setVersions(VersionCombo versionIds) throws IOException, IllegalArgumentException {
         for (var entry : versionIds.getVersions().entrySet()) {
             var versionProviderId = entry.getKey();
             var versionId = entry.getValue();
-            var source = context.versionProviderCollection.getProvider(versionProviderId);
+            var source = context.componentRegistry.getVersionProvider(versionProviderId);
             if (source == null) {
                 throw new IllegalArgumentException(
                     "Version source %s does not exist".formatted(versionProviderId)
@@ -53,15 +52,13 @@ public class ServerBuilder {
                     )
                 );
             }
+
             server.setCurrentVersionId(versionProviderId, versionId);
-            // TODO: This incorporates exceptionally special handling of java versions
-            //  in a way that is not compatible with most version providers.
-            //  It must be replaced with a system better suited to versions without javaVersion information.
-            var details = version.fetchVersionDetails();
-            if (server.getJavaVersion() < details.javaVersion()) {
-                server.setJavaVersion(details.javaVersion());
-            }
         }
+        var properties = context.componentRegistry.getComponent(template.getDefinition().type())
+            .fetchVersionPropertiesGeneric(versionIds);
+        // TODO: This strongly depends on java server types. It should be replaced with a system that is independent of server type semantics.
+        server.setJavaVersion(Integer.parseInt(properties.get("java-version")));
         
         return this;
     }
@@ -69,6 +66,7 @@ public class ServerBuilder {
     public ServerBuilder setTemplate(ServerTemplate template) {
         this.template = template;
         server.setTemplateId(template.getDefinition().id());
+        server.setType(template.getDefinition().type());
         return this;
     }
 
@@ -114,8 +112,6 @@ public class ServerBuilder {
         private TemplateProvider templateProvider;
         @Autowired
         private ComponentRegistry componentRegistry;
-        @Autowired
-        private VersionProviderCollection versionProviderCollection;
         
         @Override
         public void afterPropertiesSet() throws Exception {

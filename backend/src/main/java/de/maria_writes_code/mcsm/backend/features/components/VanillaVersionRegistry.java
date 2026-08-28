@@ -9,6 +9,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+
 import org.apache.commons.collections4.map.LinkedMap;
 import org.apache.commons.io.FileUtils;
 import org.jspecify.annotations.Nullable;
@@ -20,12 +22,14 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import de.maria_writes_code.mcsm.backend.AppConfig;
+import de.maria_writes_code.mcsm.backend.features.components.execution_helpers.MinecraftExecutionHelper;
+import de.maria_writes_code.mcsm.backend.features.components.execution_helpers.ServerExecutionHelper;
 import de.maria_writes_code.mcsm.backend.features.components.versions.ServerJar;
 import de.maria_writes_code.mcsm.backend.features.components.versions.ServerJarRepository;
 import de.maria_writes_code.mcsm.backend.features.components.versions.VanillaVersion;
 import de.maria_writes_code.mcsm.backend.features.components.versions.Version;
 import de.maria_writes_code.mcsm.backend.features.components.versions.VersionProvider;
-import de.maria_writes_code.mcsm.backend.features.templates.ServerTemplate;
+import de.maria_writes_code.mcsm.backend.features.runtimes.RuntimeProvider;
 import static de.maria_writes_code.mcsm.backend.App.LOGGER;
 
 /**
@@ -38,7 +42,9 @@ import static de.maria_writes_code.mcsm.backend.App.LOGGER;
  *  No guarantees are made about the format of valid version ids.
  */
 @Service @Scope("singleton")
-public class VanillaVersionRegistry implements InitializingBean, VersionProvider, ServerComponent<VanillaVersion> {
+public class VanillaVersionRegistry implements InitializingBean, VersionProvider, ServerType<VanillaVersion> {
+    public static final String VERSION_ID = "vanilla";
+
     private static final URL MANIFEST_URL;
     static {
         try {
@@ -53,6 +59,8 @@ public class VanillaVersionRegistry implements InitializingBean, VersionProvider
     private AppConfig config;
     @Autowired
     private ServerJarRepository.Vanilla vanillaJars;
+    @Autowired
+    private RuntimeProvider runtimeProvider;
 
     public VanillaVersionRegistry() { }
 
@@ -92,7 +100,8 @@ public class VanillaVersionRegistry implements InitializingBean, VersionProvider
      * @param version The version to download for
      * @param destination The path into which the executable is downloaded.
      */
-    public void fetchExecutable(VanillaVersion version, Path destination) throws IOException {        var executablePath = ensureExecutable(version);
+    public void fetchExecutable(VanillaVersion version, Path destination) throws IOException {
+        var executablePath = ensureExecutable(version);
         Files.copy(executablePath, destination);
     }
 
@@ -102,7 +111,7 @@ public class VanillaVersionRegistry implements InitializingBean, VersionProvider
             .orElse(null)
             ;
         if (path == null || !path.toFile().isFile()) {
-            path = ensureExecutable(version.fetchVersionDetailsConcrete());
+            path = ensureExecutable(version.fetchVersionDetails());
         }
         return path;
     }
@@ -151,14 +160,8 @@ public class VanillaVersionRegistry implements InitializingBean, VersionProvider
     }
 
     @Override
-    public void startServer(Path location, ServerTemplate template) throws IOException {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'startServer'");
-    }
-
-    @Override
     public String getSourceIdentifier() {
-        return "vanilla";
+        return VERSION_ID;
     }
 
     @Override
@@ -175,12 +178,33 @@ public class VanillaVersionRegistry implements InitializingBean, VersionProvider
     public void fetchExecutableGeneric(VersionCombo versions, Path destination)
         throws IOException, IllegalArgumentException
     {
+        fetchExecutable(convertToVanilla(versions), destination);
+    }
+
+    @Override
+    public ServerExecutionHelper getExecutionHelper() {
+        return new MinecraftExecutionHelper(runtimeProvider);
+    }
+
+    @Override
+    public Map<String, String> fetchVersionProperties(VanillaVersion versions) throws IOException {
+        return Map.of("java-version", Integer.toString(versions.fetchVersionDetails().javaVersion()));
+    }
+
+    @Override
+    public Map<String, String> fetchVersionPropertiesGeneric(VersionCombo versions)
+            throws IOException, IllegalArgumentException {
+        return fetchVersionProperties(convertToVanilla(versions));
+    }
+    
+
+    protected VanillaVersion convertToVanilla(VersionCombo versions) throws IllegalArgumentException {
         var versionId = versions.getVersion(getSourceIdentifier())
             .orElseThrow(() -> new IllegalArgumentException("No vanilla version found in supplied versions"));
         var version = getVersionInfo(versionId);
         if (version == null) {
             throw new IllegalArgumentException("Vanilla version " + versionId + " does not exist!");
         }
-        fetchExecutable(version, destination);
+        return version;
     }
 }

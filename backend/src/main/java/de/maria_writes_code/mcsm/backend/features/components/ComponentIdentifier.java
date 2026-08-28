@@ -11,7 +11,8 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import de.maria_writes_code.mcsm.backend.utils.Utils;
 
 public enum ComponentIdentifier {
-    Vanilla("vanilla")
+    Vanilla("vanilla"),
+    Fabric("fabric")
     ;
 
     private static final Map<String, ComponentIdentifier> NAME_MAP = Arrays.stream(ComponentIdentifier.values())
@@ -28,7 +29,7 @@ public enum ComponentIdentifier {
     }
 
     @JsonCreator
-    public static ComponentIdentifier fromSerializedName(String serialized) {
+    public static ComponentIdentifier fromSerializedName(String serialized) throws IllegalArgumentException {
         return Utils.throwIfNull(
             NAME_MAP.get(serialized),
             () -> new IllegalArgumentException("String \"%s\" does not correspond to a VersionSource".formatted(serialized))

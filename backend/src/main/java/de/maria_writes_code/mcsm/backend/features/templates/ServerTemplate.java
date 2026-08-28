@@ -16,7 +16,6 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 
 import de.maria_writes_code.mcsm.backend.features.components.ComponentRegistry;
 import de.maria_writes_code.mcsm.backend.features.components.VersionCombo;
-import de.maria_writes_code.mcsm.backend.features.components.VersionProviderCollection;
 import de.maria_writes_code.mcsm.backend.utils.Utils;
 
 @NullMarked
@@ -95,7 +94,7 @@ public class ServerTemplate {
                     .stream()
                     .anyMatch(v -> v.contains(
                         version,
-                        context.versionProviders
+                        context.componentRegistry
                     ))
             ) {
                var overlay_src = getOverlayLocation().resolve(overlay.location());
@@ -118,8 +117,6 @@ public class ServerTemplate {
         private TemplateProvider templateProvider;
         @Autowired
         private ComponentRegistry componentRegistry;
-        @Autowired
-        private VersionProviderCollection versionProviders;
         
         public void setTemplateProvider(TemplateProvider templateProvider) {
             this.templateProvider = templateProvider;
@@ -127,7 +124,7 @@ public class ServerTemplate {
 
         @Override
         public void afterPropertiesSet() throws Exception {
-            Utils.requireNonNull(componentRegistry, versionProviders);
+            Utils.requireNonNull(componentRegistry);
         }
     }
 }

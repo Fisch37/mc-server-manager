@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import de.maria_writes_code.mcsm.backend.features.components.VanillaVersionRegistry;
 import de.maria_writes_code.mcsm.backend.features.components.VersionCombo;
 import de.maria_writes_code.mcsm.backend.utils.Mutex;
 
@@ -45,12 +46,7 @@ public class VanillaVersion implements Version, VersionCombo {
         return channel;
     }
 
-    @Override
-    public Details fetchVersionDetails() throws IOException {
-        return fetchVersionDetailsConcrete();
-    }
-
-    public VanillaDetails fetchVersionDetailsConcrete() throws IOException {
+    public VanillaDetails fetchVersionDetails() throws IOException {
         synchronized (this.details) {
             if (details.get() != null)
                 return details.get();
@@ -60,7 +56,7 @@ public class VanillaVersion implements Version, VersionCombo {
         }
     }
 
-    public record VanillaDetails(String versionId, int javaVersion, URL serverJar, String serverSha1) implements Details {
+    public record VanillaDetails(String versionId, int javaVersion, URL serverJar, String serverSha1) {
         private VanillaDetails(String versionId, JsonNode details) {
             var javaVersion = details.get("javaVersion");
             if (javaVersion == null) {
@@ -99,12 +95,12 @@ public class VanillaVersion implements Version, VersionCombo {
 
     @Override
     public Map<String, String> getVersions() {
-        return Map.of("vanilla", id);
+        return Map.of(VanillaVersionRegistry.VERSION_ID, id);
     }
 
     @Override
     public Optional<String> getVersion(String versionSourceId) {
-        if ("vanilla".equals(versionSourceId)) {
+        if (VanillaVersionRegistry.VERSION_ID.equals(versionSourceId)) {
             return Optional.of(id);
         } else {
             return Optional.empty();

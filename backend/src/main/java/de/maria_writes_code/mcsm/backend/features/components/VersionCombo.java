@@ -10,7 +10,9 @@ import java.util.Optional;
  */
 public interface VersionCombo {
     Map<String, String> getVersions();
-    Optional<String> getVersion(String versionSourceId);
+    default Optional<String> getVersion(String versionSourceId) {
+        return Optional.ofNullable(getVersions().get(versionSourceId));
+    }
 
     public static class Mapped implements VersionCombo {
         private final Map<String, String> versions;

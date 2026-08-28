@@ -41,7 +41,7 @@ public sealed interface Terminator permits Terminator.Signal, Terminator.Command
         }
     }
 
-    static Terminator create(ServerTemplateDefinition.Terminator terminator) {
+    public static Terminator create(ServerTemplateDefinition.Terminator terminator) {
         if (terminator instanceof ServerTemplateDefinition.CommandTerminator command) {
             return new Command(command.command());
         } else {

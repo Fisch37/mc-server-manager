@@ -1,13 +1,6 @@
 package de.maria_writes_code.mcsm.backend.features.components.versions;
 
-import java.io.IOException;
-
 public interface Version {
     String id();
     String channel();
-    Version.Details fetchVersionDetails() throws IOException;
-
-    public interface Details {
-        int javaVersion();
-    }
 }
