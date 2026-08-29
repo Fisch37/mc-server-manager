@@ -20,17 +20,11 @@ designed specifically for Minecraft.
     - possibly with an optional query param on /servers/new
 2. Server Management
     - version upgrades
-3. ~~Access to logs (both latest and historical) and crash reports~~
-    - ~~sorted by descending date, obviously~~
-4. ~~Server Templates with external version lists~~
-    - ~~to support use of Piston API~~
-5. ~~Add filtering by version channel~~
-6. ~~Proper feedback on actions (Server Create, Server Start, Stop, Restart)~~
-7. Add support for multi-stage versions
+3. Add support for multi-stage versions
     - Fabric, Forge, and Neoforge keep independent versioning for their loaders.
-8. Support for custom components and versioning in templates
+4. Support for custom components and versioning in templates
     - should allow for manually specified versions (to match with overlays)
-9. Mod Management
+5. Mod Management
     - only for non-vanilla instances
         - best marked as a template property
     - list mods
@@ -38,6 +32,6 @@ designed specifically for Minecraft.
     - add mods (by JAR)
     - add mods (via Modrinth)
     - add mods (via CurseForge)
-10. User Management
-11. Map Integration
+6. User Management
+7. Map Integration
     (based on my vanilla map project?)
