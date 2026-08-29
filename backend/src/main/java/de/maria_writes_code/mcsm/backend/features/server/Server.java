@@ -1,5 +1,6 @@
 package de.maria_writes_code.mcsm.backend.features.server;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -29,9 +30,7 @@ public class Server {
     private String templateId;
 
     private int lastExitCode;
-    // TODO: Extract this to some component independent structure
-    //  (Map of properties?)
-    private int javaVersion;
+    private HashMap<String, String> properties;
 
     public Server() {
         id = UUID.randomUUID();
@@ -48,7 +47,7 @@ public class Server {
         templateId = original.templateId;
         
         lastExitCode = original.lastExitCode;
-        javaVersion = original.javaVersion;
+        properties = new HashMap<>(original.properties);
         type = original.type;
     }
 
@@ -83,13 +82,6 @@ public class Server {
     public void setTemplateId(String templateId) {
         this.templateId = templateId;
     }
-    
-    public int getJavaVersion() {
-        return javaVersion;
-    }
-    public void setJavaVersion(int javaVersion) {
-        this.javaVersion = javaVersion;
-    }
 
     public int getLastExitCode() {
         return lastExitCode;
@@ -108,9 +100,8 @@ public class Server {
         this.type = type;
     }
 
+    /// Returns a modifiable view over the properties of this server.
     public Map<String, String> getProperties() {
-        return Map.of(
-            "java-version", Integer.toString(javaVersion)
-        );
+        return properties;
     }
 }

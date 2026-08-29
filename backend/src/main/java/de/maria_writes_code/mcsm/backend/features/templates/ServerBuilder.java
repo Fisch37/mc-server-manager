@@ -57,8 +57,8 @@ public class ServerBuilder {
         }
         var properties = context.componentRegistry.getComponent(template.getDefinition().type())
             .fetchVersionPropertiesGeneric(versionIds);
-        // TODO: This strongly depends on java server types. It should be replaced with a system that is independent of server type semantics.
-        server.setJavaVersion(Integer.parseInt(properties.get("java-version")));
+        server.getProperties().clear();
+        server.getProperties().putAll(properties);
         
         return this;
     }
