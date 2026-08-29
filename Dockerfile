@@ -31,9 +31,14 @@ RUN deno run build
 
 FROM ubuntu AS runtime
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends nginx openjdk-25-jre-headless \
-    && rm -rf /var/lib/apt/lists/*
+RUN sed -i 's/^Components: main$/& multiverse/' /etc/apt/sources.list.d/ubuntu.sources
+RUN dpkg --add-architecture i386 && apt-get update
+RUN apt-get install -y --no-install-recommends nginx openjdk-25-jre-headless
+RUN echo steam steam/question select "I AGREE" | debconf-set-selections \
+  && echo steam steam/license note '' | debconf-set-selections \
+  && apt-get install -y --no-install-recommends steamcmd
+
+RUN rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 

@@ -12,7 +12,8 @@ import de.maria_writes_code.mcsm.backend.utils.Utils;
 
 public enum ComponentIdentifier {
     Vanilla("vanilla"),
-    Fabric("fabric")
+    Fabric("fabric"),
+    Satisfactory("satisfactory")
     ;
 
     private static final Map<String, ComponentIdentifier> NAME_MAP = Arrays.stream(ComponentIdentifier.values())

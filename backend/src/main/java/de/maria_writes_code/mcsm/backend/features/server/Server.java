@@ -8,9 +8,13 @@ import java.util.UUID;
 import org.jspecify.annotations.NullUnmarked;
 
 import de.maria_writes_code.mcsm.backend.features.components.ComponentIdentifier;
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 
 // all entities are nullunmarked, because JPA creates null values whenever it wants
 @Entity
@@ -30,7 +34,12 @@ public class Server {
     private String templateId;
 
     private int lastExitCode;
-    private HashMap<String, String> properties;
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(
+        name = "server_properties",
+        joinColumns = @JoinColumn(name = "server_id")
+    )
+    private Map<String, String> properties = new HashMap<>();
 
     public Server() {
         id = UUID.randomUUID();

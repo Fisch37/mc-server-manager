@@ -12,11 +12,18 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class AppConfig {
+    private static final String STEAM_CMD_ENV = "MCSM_STEAMCMD";
+    private static final String STEAM_CMD_DEFAULT = "steamcmd";
+
     private static final String DATA_LOC_ENV = "MCSM_DATA_PATH";
     private static final File DATA_LOC_DEFAULT = Path.of("/", "var", "mcsm").toFile();
 
     @Autowired
     Environment env;
+
+    public String getSteamCmd() {
+        return env.getProperty(STEAM_CMD_ENV, STEAM_CMD_DEFAULT);
+    }
 
     private Path getDataLocation() {
         // Hacky forwards-backwards conversion, because Path is actually closer to what we want
