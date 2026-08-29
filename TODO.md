@@ -1,6 +1,16 @@
 This project is a multi-server management application
 designed specifically for Minecraft.
 
+# Completed
+- Add support for multi-stage versions
+    - Fabric, Forge, and Neoforge keep independent versioning for their loaders.
+- Access to logs (both latest and historical) and crash reports
+    - sorted by descending date, obviously
+- Server Templates with external version lists
+    - to support use of Piston API
+- Add filtering by version channel
+- Proper feedback on actions (Server Create, Server Start, Stop, Restart)
+
 # MVP
 - ~~Server Creation~~
     - ~~based on templates~~
