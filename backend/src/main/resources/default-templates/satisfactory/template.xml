@@ -1,0 +1,11 @@
+<template
+    id="satisfactory"
+    type="satisfactory"
+>
+    <name>Satisfactory Dedicated Server</name>
+    <executable file=".">
+        <terminator>
+            <signal/>
+        </terminator>
+    </executable>
+</template>

@@ -1,0 +1,17 @@
+<template
+    id="fabric"
+    type="fabric"
+>
+    <name>Fabric</name>
+    <parent
+        id="vanilla"
+        inherit-executable="false"
+    />
+    <executable file="fabric-server-launch.jar">
+        <terminator>
+            <command>/stop</command>
+        </terminator>
+        <argument>-Xmx2G</argument>
+        <argument>-Xms2G</argument>
+    </executable>
+</template>
