@@ -215,6 +215,9 @@ Get information about a single template.
     "friendly_name": <string>,
     "versions": [
         <version info object>*
+    ],
+    "default_channels": [
+        <string>*
     ]
 }
 ```

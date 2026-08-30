@@ -8,7 +8,8 @@ export type VersionInfo = {
 export type VersionSource = {
     source_id: string,
     friendly_name: string,
-    versions: Array<VersionInfo>
+    versions: Array<VersionInfo>,
+    default_channels: Array<string>
 }
 
 export type TemplateSummary = {

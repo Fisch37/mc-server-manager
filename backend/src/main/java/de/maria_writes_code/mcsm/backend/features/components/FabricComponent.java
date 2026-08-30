@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
@@ -22,6 +23,7 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import de.maria_writes_code.mcsm.backend.features.components.configuration.ConfigurationDescriptor;
 import de.maria_writes_code.mcsm.backend.features.components.execution_helpers.MinecraftExecutionHelper;
 import de.maria_writes_code.mcsm.backend.features.components.execution_helpers.ServerExecutionHelper;
 import de.maria_writes_code.mcsm.backend.features.components.versions.FabricVersions;
@@ -108,6 +110,11 @@ public class FabricComponent implements ServerType<FabricVersions>, Initializing
         public String getFriendlyName() {
             return "Loader Version";
         }
+
+        @Override
+        public Set<String> getDefaultChannels() {
+            return Set.of(FabricVersions.LoaderVersion.STABLE_CHANNEL_ID);
+        }
     }
 
     public static class InstallerProvider extends VersionProvider.LinkedMapProvider<FabricVersions.InstallerVersion> {
@@ -128,6 +135,11 @@ public class FabricComponent implements ServerType<FabricVersions>, Initializing
         public String getFriendlyName() {
             return "Fabric Installer Version";
         }
+
+        @Override
+        public Set<String> getDefaultChannels() {
+            return Set.of(FabricVersions.InstallerVersion.STABLE_CHANNEL_ID);
+        }
         
     }
 
@@ -140,5 +152,10 @@ public class FabricComponent implements ServerType<FabricVersions>, Initializing
     public Map<String, String> fetchVersionPropertiesGeneric(VersionCombo versions)
             throws IOException, IllegalArgumentException {
         return vanillaRegistry.fetchVersionPropertiesGeneric(versions);
+    }
+
+    @Override
+    public List<ConfigurationDescriptor<?>> getAvailableProperties() {
+        return vanillaRegistry.getAvailableProperties();
     }
 }

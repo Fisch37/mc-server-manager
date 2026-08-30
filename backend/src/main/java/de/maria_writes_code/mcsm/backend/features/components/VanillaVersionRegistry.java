@@ -44,6 +44,7 @@ import static de.maria_writes_code.mcsm.backend.App.LOGGER;
 @Service @Scope("singleton")
 public class VanillaVersionRegistry implements InitializingBean, VersionProvider, ServerType<VanillaVersion> {
     public static final String VERSION_ID = "vanilla";
+    public static final String STABLE_CHANNEL_ID = "release";
 
     private static final URL MANIFEST_URL;
     static {
@@ -206,5 +207,10 @@ public class VanillaVersionRegistry implements InitializingBean, VersionProvider
             throw new IllegalArgumentException("Vanilla version " + versionId + " does not exist!");
         }
         return version;
+    }
+
+    @Override
+    public Set<String> getDefaultChannels() {
+        return Set.of(STABLE_CHANNEL_ID);
     }
 }

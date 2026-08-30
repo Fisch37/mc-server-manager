@@ -130,6 +130,7 @@ const ServerCreator = ({ onCreated }: ServerCreatorParams) => {
                         <VersionSelector
                             name={source.friendly_name}
                             versions={source.versions}
+                            default_channels={source.default_channels}
                             value={chosen_versions[source.source_id]}
                             onValueSelect={value => set_chosen_versions(prev => {
                                 let newObj = {...prev};
@@ -159,16 +160,19 @@ const ServerCreator = ({ onCreated }: ServerCreatorParams) => {
 type VersionSelectorProps = {
     name: string,
     versions: Array<VersionInfo>,
+    default_channels: Array<string>,
     value: string,
     onValueSelect: (value: string) => void,
-    isDisabled: boolean
+    isDisabled: boolean,
 };
-const VersionSelector = ({ name, versions, value, onValueSelect, isDisabled }: VersionSelectorProps) => {
-    // FIXME: This will cause lag during every rerender, b/c it is O(n²) on a potentially large list
-    const available_channels = versions.map(version => version.channel)
+const VersionSelector = ({ name, versions, default_channels, value, onValueSelect, isDisabled }: VersionSelectorProps) => {
+    const [available_channels, _] = useState<Array<string>>(() => 
+        versions.map(version => version.channel)
             // https://stackoverflow.com/a/14438954/13095869
-            .filter((channel, index, array) => array.indexOf(channel) === index);
-    const [displayed_channels, set_displayed_channels] = useState<Array<string>>([...available_channels]);
+            // O(n²). Yeesh.
+            .filter((channel, index, array) => array.indexOf(channel) === index)
+    );
+    const [displayed_channels, set_displayed_channels] = useState<Array<string>>(default_channels);
     const [version_filter_opened, set_version_filter_opened] = useState<boolean>(false);
 
     return (
@@ -204,47 +208,49 @@ const VersionSelector = ({ name, versions, value, onValueSelect, isDisabled }: V
                     </ListBox>
                 </Select.Popover>
             </Select>
-            <div className="w-full flex">
-                <div className="flex-grow">
-                    <div className={version_filter_opened ? "growFromUpperRight" : "shrinkToUpperRight"}>
-                        <Select
-                            selectionMode="multiple"
-                            value={displayed_channels}
-                            isDisabled={isDisabled}
-                            onChange={keys => set_displayed_channels(keys as string[])}
-                        >
-                            <Label>Visible Channels</Label>
-                            <Select.Trigger>
-                                <Select.Value />
-                                <Select.Indicator />
-                            </Select.Trigger>
-                            <Select.Popover>
-                                <ListBox selectionMode="multiple">
-                                    {available_channels.map(channel => (
-                                        <ListBox.Item
-                                            id={channel}
-                                            textValue={channel}
-                                            key={channel}
-                                        >
-                                            {channel}
-                                            <ListBox.ItemIndicator />
-                                        </ListBox.Item>
-                                    ))}
-                                </ListBox>
-                            </Select.Popover>
-                        </Select>
+            { available_channels.length > 1 &&
+                <div className="w-full flex">
+                    <div className="flex-grow">
+                        <div className={version_filter_opened ? "growFromUpperRight" : "shrinkToUpperRight"}>
+                            <Select
+                                selectionMode="multiple"
+                                value={displayed_channels}
+                                isDisabled={isDisabled}
+                                onChange={keys => set_displayed_channels(keys as string[])}
+                            >
+                                <Label>Visible Channels</Label>
+                                <Select.Trigger>
+                                    <Select.Value />
+                                    <Select.Indicator />
+                                </Select.Trigger>
+                                <Select.Popover>
+                                    <ListBox selectionMode="multiple">
+                                        {available_channels.map(channel => (
+                                            <ListBox.Item
+                                                id={channel}
+                                                textValue={channel}
+                                                key={channel}
+                                            >
+                                                {channel}
+                                                <ListBox.ItemIndicator />
+                                            </ListBox.Item>
+                                        ))}
+                                    </ListBox>
+                                </Select.Popover>
+                            </Select>
+                        </div>
                     </div>
+                    <Sliders
+                        onClick={() => {
+                            set_version_filter_opened(prev => !prev);
+                            console.log("Click!");
+                        }}
+                        width={18} height={18}
+                        className="flex-none mr-2"
+                        aria-label="Version Channel Filter"
+                    />
                 </div>
-                <Sliders
-                    onClick={() => {
-                        set_version_filter_opened(prev => !prev);
-                        console.log("Click!");
-                    }}
-                    width={18} height={18}
-                    className="flex-none mr-2"
-                    aria-label="Version Channel Filter"
-                />
-            </div>
+            }
         </div>
     )
 };

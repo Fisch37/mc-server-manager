@@ -56,6 +56,8 @@ public record FabricVersions(String loader, String installer, String minecraft) 
 
     
     public record LoaderVersion(String id, boolean isStable) implements Version {
+        public static final String STABLE_CHANNEL_ID = "stable", UNSTABLE_CHANNEL_ID = "unstable";
+
         public LoaderVersion(JsonNode json) throws IllegalArgumentException {
             var stable = json.get("stable");
             if (!stable.isBoolean()) {
@@ -72,11 +74,13 @@ public record FabricVersions(String loader, String installer, String minecraft) 
 
         @Override
         public String channel() {
-            return isStable ? "stable" : "unstable";
+            return isStable ? STABLE_CHANNEL_ID : UNSTABLE_CHANNEL_ID;
         }
     }
 
     public record InstallerVersion(String id, boolean isStable) implements Version {
+        public static final String STABLE_CHANNEL_ID = "stable", UNSTABLE_CHANNEL_ID = "unstable";
+
         public InstallerVersion(JsonNode json) throws IllegalArgumentException {
             var stable = json.get("stable");
             if (!stable.isBoolean()) {
@@ -93,7 +97,7 @@ public record FabricVersions(String loader, String installer, String minecraft) 
 
         @Override
         public String channel() {
-            return isStable ? "stable" : "unstable";
+            return isStable ? STABLE_CHANNEL_ID : UNSTABLE_CHANNEL_ID;
         }
     }
 }

@@ -79,7 +79,8 @@ public class TemplateEndpoints {
     public record VersionSourceObject(
         String source_id,
         String friendly_name,
-        List<VersionInfoObject> versions
+        List<VersionInfoObject> versions,
+        Collection<String> default_channels
     ) {
         public VersionSourceObject(VersionProvider versionProvider) {
             this(
@@ -88,7 +89,8 @@ public class TemplateEndpoints {
                 versionProvider.getVersions()
                     .stream()
                     .map(VersionInfoObject::new)
-                    .collect(Collectors.toList())
+                    .collect(Collectors.toList()),
+                versionProvider.getDefaultChannels()
             );
         }
     }

@@ -1,6 +1,7 @@
 package de.maria_writes_code.mcsm.backend.features.components.versions;
 
 import java.util.Collection;
+import java.util.Set;
 import java.util.stream.Collector;
 
 import org.apache.commons.collections4.map.LinkedMap;
@@ -20,6 +21,7 @@ public interface VersionProvider {
      */
     int indexOf(String versionId);
     Collection<? extends Version> getVersions();
+    Set<String> getDefaultChannels();
 
     public abstract static class LinkedMapProvider<T extends Version> implements VersionProvider {
         protected final LinkedMap<String, T> versions;

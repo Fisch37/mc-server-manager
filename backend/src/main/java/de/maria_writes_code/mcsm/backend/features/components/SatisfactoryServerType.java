@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import de.maria_writes_code.mcsm.backend.AppConfig;
 import de.maria_writes_code.mcsm.backend.features.components.execution_helpers.ServerExecutionHelper;
+import de.maria_writes_code.mcsm.backend.features.components.configuration.ConfigurationDescriptor;
 import de.maria_writes_code.mcsm.backend.features.components.execution_helpers.NativeExecutionHelper;
 import de.maria_writes_code.mcsm.backend.features.components.versions.NoVersions;
 import de.maria_writes_code.mcsm.backend.features.components.versions.VersionProvider;
