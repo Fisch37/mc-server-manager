@@ -10,6 +10,8 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.apache.commons.collections4.map.LinkedMap;
 import org.apache.commons.io.FileUtils;
@@ -22,6 +24,7 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import de.maria_writes_code.mcsm.backend.AppConfig;
+import de.maria_writes_code.mcsm.backend.features.components.configuration.ConfigurationDescriptor;
 import de.maria_writes_code.mcsm.backend.features.components.execution_helpers.MinecraftExecutionHelper;
 import de.maria_writes_code.mcsm.backend.features.components.execution_helpers.ServerExecutionHelper;
 import de.maria_writes_code.mcsm.backend.features.components.versions.ServerJar;
@@ -212,5 +215,38 @@ public class VanillaVersionRegistry implements InitializingBean, VersionProvider
     @Override
     public Set<String> getDefaultChannels() {
         return Set.of(STABLE_CHANNEL_ID);
+    }
+
+    @Override
+    public List<ConfigurationDescriptor<?>> getAvailableProperties() {
+        return List.of(
+            new ConfigurationDescriptor.Number(
+                "min-heap",
+                "Minimum RAM",
+                "in MiB",
+                null,
+                null,
+                false,
+                null
+            ),
+            new ConfigurationDescriptor.Number(
+                "max-heap",
+                "Maximum RAM",
+                "in MiB",
+                null,
+                null,
+                false,
+                null
+            ),
+            new ConfigurationDescriptor.Number(
+                "java-version",
+                "Java Version",
+                "",
+                "The minimum Java Version required for this server",
+                null,
+                false,
+                Pattern.compile("[1-9][0-9]*")
+            )
+        );
     }
 }

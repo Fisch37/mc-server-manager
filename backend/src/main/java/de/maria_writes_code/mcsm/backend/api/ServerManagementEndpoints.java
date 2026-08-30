@@ -5,6 +5,8 @@ import static de.maria_writes_code.mcsm.backend.api.EndpointConsts.NO_SERVER_EXI
 import java.io.IOException;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import de.maria_writes_code.mcsm.backend.features.components.ComponentRegistry;
 import de.maria_writes_code.mcsm.backend.features.components.VersionCombo;
 import de.maria_writes_code.mcsm.backend.features.server.ActiveServer;
 import de.maria_writes_code.mcsm.backend.features.server.ServerManager;
@@ -36,12 +39,16 @@ public class ServerManagementEndpoints {
     @Autowired
     private TemplateProvider templateProvider;
     @Autowired
+    private ComponentRegistry componentRegistry;
+
+    @Autowired
     private ServerBuilder.Context builderServices;
 
     @PostMapping("new")
     public ServerObject createServer(@RequestBody ServerBuilderObject builderParams) {
         var builder = new ServerBuilder(builderServices);
         try {
+            validateProperties(builderParams.template, builderParams.properties);
             builderParams.apply(builder, templateProvider);
             var server = builder.build();
             manager.add(server);
@@ -107,16 +114,56 @@ public class ServerManagementEndpoints {
         }
     }
 
+    private void validateProperties(String templateId, Map<String, String> properties) throws ResponseStatusException {
+        var template = templateProvider.getTemplate(templateId);
+        if (template == null)
+            return; // Nothing to do. Later checks will detect this and throw the correct error
+        var component = componentRegistry.getComponent(template.getDefinition().type());
+        var allowedProperties = component.getAvailableProperties()
+            .stream()
+            .collect(Collectors.toMap(conf -> conf.getId(), Function.identity()))
+            ;
+        for (var entry : properties.entrySet()) {
+            var propertyDescriptor = allowedProperties.get(entry.getKey());
+            if (propertyDescriptor == null)
+                throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Property \"%s\" was passed, but is not a configurable property"
+                        .formatted(entry.getKey())
+                );
+            try {
+                propertyDescriptor.validate(entry.getValue());
+            } catch (IllegalArgumentException e) {
+                throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Property value for \"%s\" (template \"%s\") cannot have value \"%s\""
+                        .formatted(entry.getKey(), templateId, entry.getValue()),
+                    e
+                );
+            }
+        }
+    }
+
     public record ServerObject(UUID id, String name, ServerStatus status) {
         public ServerObject(ActiveServer server) {
             this(server.getId(), server.getServer().getName(), server.getStatus());
         }
     }
-    public record ServerBuilderObject(String name, String template, Map<String, String> versions) {
-        public void apply(ServerBuilder builder, TemplateProvider templates) throws IOException {
+    public record ServerBuilderObject(
+        String name,
+        String template,
+        Map<String, String> versions,
+        Map<String, String> properties
+    ) {
+        public void apply(
+            ServerBuilder builder,
+            TemplateProvider templates
+        ) throws IOException {
+            var template = templates.getTemplate(this.template);
             builder.setName(name)
-                .setTemplate(templates.getTemplate(template))
-                .setVersions(new VersionCombo.Mapped(versions));
+                .setTemplate(template)
+                .setVersions(new VersionCombo.Mapped(versions))
+                .setProperties(properties);
         }
     }
 }

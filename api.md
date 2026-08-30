@@ -166,6 +166,9 @@ Get information about a single template.
     "template": <template id string>,
     "versions": {
         <version source identifier string>: <version string>
+    },
+    "properties": {
+        <key string>: <value string>
     }
 }
 ```
@@ -204,7 +207,37 @@ Get information about a single template.
     "has_mods": <boolean>,
     "versions": [
         <version source object>*
+    ],
+    "configuration_options": [
+        <configuration option object>*
     ]
+}
+```
+
+### Configuration Option Object
+```json
+{
+    "id": <string>,
+    "name": <string>,
+    "placeholder": <string>,
+    "required": <boolean>,
+    "type": "select"|"text"|"number",
+    "options": [ // only if type is "select"
+        {
+            <configuration select option>*
+        }
+    ],
+    "default_value"?: <string|number>, // number only when type is "number" (in which case only a number is allowed)
+    "value_filter"?: <regular expression> // only when type is "text" or "number"
+}
+```
+
+### Configuration Select Option
+```json
+{
+    "id": <string>,
+    "name": <string>,
+    "description"?: <string>
 }
 ```
 

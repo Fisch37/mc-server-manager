@@ -2,6 +2,7 @@ package de.maria_writes_code.mcsm.backend.features.templates;
 
 import java.io.IOException;
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.jspecify.annotations.NullMarked;
@@ -70,7 +71,15 @@ public class ServerBuilder {
         return this;
     }
 
+    public ServerBuilder setProperties(Map<String, String> properties) {
+        server.getProperties().putAll(properties);
+        return this;
+    }
+
     public ActiveServer build() throws IOException {
+        return build(false);
+    }
+    public ActiveServer build(boolean allowArbitraryProperties) throws IOException {
         if (server.getName() == null) {
             throw new IllegalStateException("Server does not have a name");
         }
@@ -89,6 +98,18 @@ public class ServerBuilder {
         if (template == null || !template.getDefinition().id().equals(server.getTemplateId())) {
             throw new IllegalStateException("Server does not have a template, or has a broken template id");
         }
+        if (!allowArbitraryProperties) {
+            var allowedProperties = context.componentRegistry.getComponent(template.getDefinition().type())
+                .getAvailableProperties()
+                .stream()
+                .map(conf -> conf.getId())
+                .collect(Collectors.toSet())
+                ;
+            if (!allowedProperties.containsAll(server.getProperties().keySet())) {
+                throw new IllegalStateException("Server has one or more properties not specified as valid server properties");
+            }
+        }
+
         server.setLastExitCode(0);
         template.apply(
             context.config.getServerLocation().resolve(server.getId().toString()),

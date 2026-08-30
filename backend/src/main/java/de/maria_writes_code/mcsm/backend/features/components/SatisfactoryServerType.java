@@ -81,5 +81,9 @@ public class SatisfactoryServerType implements ServerType<NoVersions> {
             throws IOException, IllegalArgumentException {
         return fetchVersionProperties(new NoVersions(versions));
     }
-    
+
+    @Override
+    public List<ConfigurationDescriptor<?>> getAvailableProperties() {
+        return List.of();
+    }
 }

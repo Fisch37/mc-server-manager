@@ -1,5 +1,6 @@
 package de.maria_writes_code.mcsm.backend.api;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import de.maria_writes_code.mcsm.backend.features.components.ComponentRegistry;
+import de.maria_writes_code.mcsm.backend.features.components.configuration.ConfigurationDescriptor;
 import de.maria_writes_code.mcsm.backend.features.components.versions.VersionProvider;
 import de.maria_writes_code.mcsm.backend.features.templates.ServerTemplate;
 import de.maria_writes_code.mcsm.backend.features.templates.ServerTemplateDefinition;
@@ -42,7 +44,8 @@ public class TemplateEndpoints {
         String id,
         String name,
         boolean has_mods,
-        List<VersionSourceObject> versions
+        List<VersionSourceObject> versions,
+        List<ConfigurationDescriptor<?>> configuration_options
     ) {
         public TemplateSummaryObject(
             ServerTemplate template,
@@ -62,8 +65,11 @@ public class TemplateEndpoints {
                 template.getHierarchy(context.templates)
                    .map(t -> context.components.getComponent(t.type()))
                    .flatMap(c -> c.getVersionProviders().stream())
+                   .distinct()
                    .map(VersionSourceObject::new)
-                   .collect(Collectors.toList())
+                   .collect(Collectors.toList()),
+                context.components.getComponent(template.type())
+                    .getAvailableProperties()
             );
         }
 

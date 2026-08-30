@@ -3,8 +3,10 @@ package de.maria_writes_code.mcsm.backend.features.components;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
+import de.maria_writes_code.mcsm.backend.features.components.configuration.ConfigurationDescriptor;
 import de.maria_writes_code.mcsm.backend.features.components.execution_helpers.ServerExecutionHelper;
 import de.maria_writes_code.mcsm.backend.features.components.versions.VersionProvider;
 import de.maria_writes_code.mcsm.backend.features.runtimes.NoSuchRuntimeException;
@@ -35,6 +37,7 @@ public interface ServerType<T extends VersionCombo> {
     void fetchExecutable(T versions, Path destination) throws IOException;
     
     ServerExecutionHelper getExecutionHelper();
+    List<ConfigurationDescriptor<?>> getAvailableProperties();
 
     Map<String, String> fetchVersionProperties(T versions) throws IOException;
     Map<String, String> fetchVersionPropertiesGeneric(VersionCombo versions) throws IOException, IllegalArgumentException;
