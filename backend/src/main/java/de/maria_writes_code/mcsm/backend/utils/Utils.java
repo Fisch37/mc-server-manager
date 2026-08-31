@@ -99,8 +99,19 @@ public abstract sealed class Utils permits Utils.Seal {
         return value == null ? defaultValue : value;
     }
 
+    private static final int SIGTERM = 15, SIGINT = 2;
     public static boolean isExitCodeOk(int exitCode) {
-        return exitCode == 0;
+        switch (exitCode) {
+            case 0:
+            // We will assume our servers react correctly to signals.
+            // We can't _actually_ know that, but there also isn't
+            // any way to tell whether they _did_. Exit codes suck.
+            case 128+SIGINT:
+            case 128+SIGTERM:
+                return true;
+            default:
+                return false;
+        }
     }
     
     private static final class Seal extends Utils { }
