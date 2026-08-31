@@ -1,6 +1,6 @@
-import { Button, TextField, Input, Label, Select, ListBox, FieldError, ErrorMessage } from "@heroui/react";
+import { Button, TextField, Input, Label, Select, ListBox, FieldError, ErrorMessage, Disclosure, Description, Tooltip } from "@heroui/react";
 import { useEffect, useState } from "react";
-import { getTemplates, type VersionInfo, type TemplateSummary, type VersionSource } from "./api/template";
+import { getTemplates, type VersionInfo, type TemplateSummary, type VersionSource, type ConfigurationOption } from "./api/template";
 import { createServer as createServerAPI } from "./api/server";
 import { Sliders } from "@gravity-ui/icons";
 import type { ApiError } from "./api/shared";
@@ -21,6 +21,8 @@ const ServerCreator = ({ onCreated }: ServerCreatorParams) => {
     const [chosen_versions, set_chosen_versions] = useState<{ [source_id: string]: string }>({});
     
     const [template_version_sources, set_template_version_sources] = useState<Array<VersionSource>>([]);
+    const [template_configurations, set_template_configurations] = useState<Array<ConfigurationOption>>([]);
+    const [configuration, set_configuration] = useState<{ [key: string]: string }>({});
     const [error_message, set_error_message] = useState("");
 
     useEffect(() => {
@@ -32,23 +34,25 @@ const ServerCreator = ({ onCreated }: ServerCreatorParams) => {
             })
     }, []);
     useEffect(() => {
-        debugger;
         let template = getTemplate(chosen_template);
         if (template !== null) {
-            console.log("Helo!");
             set_template_version_sources(template.versions);
-            console.log(template.versions);
+            set_template_configurations(template.configuration_options);
         } else {
             console.debug("No template found");
         }
     }, [chosen_template]);
+    useEffect(() => {
+        console.log(configuration);
+    }, [configuration]);
 
     async function createServer() {
         try {
             await createServerAPI(
                 chosen_name,
                 chosen_template,
-                chosen_versions
+                chosen_versions,
+                configuration
             );
         } catch (e: any) {
             if ("type" in e && e.type === "api_error") {
@@ -141,6 +145,88 @@ const ServerCreator = ({ onCreated }: ServerCreatorParams) => {
                         />
                     </TextField>
                 ))}
+                <div className="w-full">
+                    <Disclosure isDisabled={!Boolean(chosen_template)}>
+                        <Disclosure.Heading className="text-right">
+                            <Button
+                                slot="trigger"
+                                variant="ghost"
+                            >
+                                Show advanced Config
+                                <Disclosure.Indicator />
+                            </Button>
+                        </Disclosure.Heading>
+                        <Disclosure.Content>
+                            <Disclosure.Body>
+                                {template_configurations.map(configOption => {
+                                    const onChange = (new_value: string) => {
+                                        set_configuration(prev => {
+                                            let newObj = {...prev};
+                                            if (new_value) {
+                                                newObj[configOption.id] = new_value;
+                                            } else {
+                                                delete newObj[configOption.id];
+                                            }
+                                            return newObj;
+                                        });
+                                    }
+                                    switch (configOption.type) {
+                                        case "select":
+                                            return (
+                                                <Select
+                                                    key={configOption.id}
+                                                    className="w-full"
+                                                    placeholder={configOption.placeholder}
+                                                    isRequired={configOption.required}
+                                                    onChange={key => onChange(key as string)}
+                                                >
+                                                    <Label>{configOption.name}</Label>
+                                                    <Select.Trigger>
+                                                        <Select.Value />
+                                                        <Select.Indicator />
+                                                    </Select.Trigger>
+                                                    <Select.Popover>
+                                                        <ListBox>
+                                                            {configOption.options.map(option => (
+                                                                <ListBox.Item
+                                                                    id={option.id}
+                                                                    textValue={option.name}
+                                                                >
+                                                                    {option.name}
+                                                                    <ListBox.ItemIndicator />
+                                                                    { /* TODO: This is not guaranteed to work */}
+                                                                    {option.description &&
+                                                                        <Description>{option.description}</Description>
+                                                                    }
+                                                                </ListBox.Item>
+                                                            ))}
+                                                        </ListBox>
+                                                    </Select.Popover>
+                                                    {configOption.description && <Description>{configOption.description}</Description>}
+                                                </Select>
+                                            );
+                                        case "text":
+                                        case "number":
+                                            return (
+                                                <TextField
+                                                    onChange={onChange}
+                                                    isRequired={configOption.required}
+                                                >
+                                                    <Label>{configOption.name}</Label>
+                                                    <Input
+                                                        pattern={configOption.value_filter}
+                                                        placeholder={configOption.placeholder}
+                                                        defaultValue={configOption.default_value}
+                                                    />
+                                                    {configOption.description && <Description>{configOption.description}</Description>}
+                                                </TextField>
+                                            );
+                                    }
+                                })}
+                            </Disclosure.Body>
+                        </Disclosure.Content>
+                    </Disclosure>
+                </div>
                 {error_message && (
                     <ErrorMessage>{error_message}</ErrorMessage>
                 )}
@@ -240,15 +326,21 @@ const VersionSelector = ({ name, versions, default_channels, value, onValueSelec
                             </Select>
                         </div>
                     </div>
-                    <Sliders
-                        onClick={() => {
-                            set_version_filter_opened(prev => !prev);
-                            console.log("Click!");
-                        }}
-                        width={18} height={18}
-                        className="flex-none mr-2"
-                        aria-label="Version Channel Filter"
-                    />
+                    { /* TODO: This straight up does nothing. No tooltip. */ }
+                    <Tooltip delay={0}>
+                        <Sliders
+                            onClick={() => {
+                                set_version_filter_opened(prev => !prev);
+                                console.log("Click!");
+                            }}
+                            width={18} height={18}
+                            className="flex-none mr-2 cursor-pointer"
+                            aria-label="Version Channel Filter"
+                        />
+                        <Tooltip.Content>
+                            <p>Filter Versions</p>
+                        </Tooltip.Content>
+                    </Tooltip>
                 </div>
             }
         </div>

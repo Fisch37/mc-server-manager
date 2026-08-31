@@ -10,23 +10,23 @@
     "preview": "rsbuild preview"
   },
   "dependencies": {
-    "@gravity-ui/icons": "^2.21.0",
+    "@gravity-ui/icons": "^2.22.0",
     "@heroui/react": "^3.2.4",
     "@heroui/styles": "^3.2.4",
     "@phosphor-icons/react": "^2.1.10",
     "bootstrap": "^5.3.8",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
-    "react-router": "^8.3.0"
+    "react-router": "^8.3.1"
   },
   "devDependencies": {
-    "@rsbuild/core": "^2.1.9",
+    "@rsbuild/core": "^2.2.1",
     "@rsbuild/plugin-react": "^2.1.0",
     "@rsbuild/plugin-tailwindcss": "^2.0.3",
     "@rslint/core": "^0.5.3",
     "@types/node": "^24.13.3",
-    "@types/react": "^19.2.17",
-    "@types/react-dom": "^19.2.3",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.5",
     "tailwindcss": "^4.3.3",
     "typescript": "^6.0.3"
   }

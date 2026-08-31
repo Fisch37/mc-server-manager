@@ -219,7 +219,8 @@ Get information about a single template.
 {
     "id": <string>,
     "name": <string>,
-    "placeholder": <string>,
+    "placeholder"?: <string>,
+    "description"?: <string>,
     "required": <boolean>,
     "type": "select"|"text"|"number",
     "options": [ // only if type is "select"
@@ -227,7 +228,7 @@ Get information about a single template.
             <configuration select option>*
         }
     ],
-    "default_value"?: <string|number>, // number only when type is "number" (in which case only a number is allowed)
+    "default_value"?: <string|number>, // number only when type is "number" (in which case only a number is allowed) otherwise string
     "value_filter"?: <regular expression> // only when type is "text" or "number"
 }
 ```

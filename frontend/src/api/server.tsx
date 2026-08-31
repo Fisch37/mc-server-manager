@@ -37,7 +37,8 @@ export function isStatusAlive(status: StatusValue): boolean {
 export async function createServer(
     name: string,
     template: string,
-    versions: { [source_id: string]: string }
+    versions: { [source_id: string]: string },
+    properties: { [key: string]: string }
 ) {
     await fetchApi(
         `/server/new`,
@@ -45,7 +46,8 @@ export async function createServer(
         JSON.stringify({
             name,
             template,
-            versions
+            versions,
+            properties
         })
     )
 }
