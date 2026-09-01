@@ -66,7 +66,7 @@ public abstract class PublisherSocket extends TextWebSocketHandler {
         void run(WebSocketSession session) throws IOException;
     }
 
-    protected static class IOExceptionGroup extends Throwable {
+    public static class IOExceptionGroup extends Throwable {
         private final Collection<IOException> exceptions;
 
         public IOExceptionGroup(Collection<IOException> exceptions) {

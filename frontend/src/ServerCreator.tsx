@@ -88,7 +88,12 @@ const ServerCreator = ({ onCreated }: ServerCreatorParams) => {
                 set_process_state(prev => [...prev, message.line]);
             }
         });
-        process_updates.addOnClose(onCreated);
+        process_updates.addOnClose((e) => {
+            if (e.wasClean)
+                onCreated();
+            else
+                set_error_message("Failed to create server: " + e);
+        });
     }
 
     return (

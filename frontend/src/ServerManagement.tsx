@@ -1,6 +1,6 @@
 import { Button, Chip, Input, ListBox, Select, Tabs, type AlertVariants } from "@heroui/react";
 import { useEffect, useRef, useState } from "react";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import {
     getServerInfo, isStatusAlive, restartServer as restartServerAPI, sendConsole as sendConsoleAPI,
     renameServer as renameServerAPI, deleteServer as deleteServerAPI,
@@ -46,6 +46,7 @@ function alertApiErrorImproved(
 
 const ServerManagement = () => {
     const server_id = useParams().server_id;
+    const navigate = useNavigate();
 
     const [server_info, set_server_info] = useState<Server|null>(null);
     const [server_status, set_server_status] = useState<StatusValue|null>(null);
@@ -150,6 +151,7 @@ const ServerManagement = () => {
 
     async function deleteServer() {
         await deleteServerAPI(server_id);
+        navigate("/");
     }
 
     async function startServer() {

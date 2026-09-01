@@ -18,6 +18,7 @@ import de.maria_writes_code.mcsm.backend.features.components.execution_helpers.N
 import de.maria_writes_code.mcsm.backend.features.components.versions.NoVersions;
 import de.maria_writes_code.mcsm.backend.features.components.versions.VersionProvider;
 import de.maria_writes_code.mcsm.backend.features.server.ServerProcess;
+import de.maria_writes_code.mcsm.backend.utils.Utils;
 
 @Service
 public class SatisfactoryServerType implements ServerType<NoVersions> {
@@ -65,7 +66,10 @@ public class SatisfactoryServerType implements ServerType<NoVersions> {
         process.getConsoleEvent().subscribe(line -> updateReceiver.accept("Satisfactory: " + line));
         
         try {
-            process.await();
+            if (!Utils.isExitCodeOk(process.await())) {
+                updateReceiver.accept("Satisfactory: Failed to install server");
+                throw new IOException("Server creation completed abnormally");
+            }
         } catch (ExecutionException e) {
             throw new IOException(e);
         } catch (InterruptedException e) {

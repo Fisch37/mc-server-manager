@@ -63,6 +63,10 @@ public class ListenerSocket extends JsonPublisherSocket implements Consumer<Stri
         }
     }
 
+    public void close(CloseStatus status) throws IOExceptionGroup {
+        super.close(status);
+    }
+
     protected record LineObject(String line) { }
     protected record BacklogObject(List<String> backlog) { }
 }

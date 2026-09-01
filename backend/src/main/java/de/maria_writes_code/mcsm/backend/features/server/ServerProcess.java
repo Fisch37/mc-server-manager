@@ -91,8 +91,9 @@ public class ServerProcess {
         return consoleEvent;
     }
 
-    public void await() throws InterruptedException, ExecutionException {
-        process.onExit().get();
+    public int await() throws InterruptedException, ExecutionException {
+        var completedProcess = process.onExit().get();
+        return completedProcess.exitValue();
     }
 
     private void waitOnExit() {

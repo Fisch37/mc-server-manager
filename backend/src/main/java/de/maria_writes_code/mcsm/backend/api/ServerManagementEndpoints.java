@@ -1,5 +1,6 @@
 package de.maria_writes_code.mcsm.backend.api;
 
+import static de.maria_writes_code.mcsm.backend.App.LOGGER;
 import static de.maria_writes_code.mcsm.backend.api.EndpointUtils.NO_SERVER_EXISTS;
 
 import java.io.IOException;
@@ -24,8 +25,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.socket.CloseStatus;
 
 import de.maria_writes_code.mcsm.backend.api.websockets.ListenerSocket;
+import de.maria_writes_code.mcsm.backend.api.websockets.abc.PublisherSocket.IOExceptionGroup;
 import de.maria_writes_code.mcsm.backend.features.components.ComponentRegistry;
 import de.maria_writes_code.mcsm.backend.features.components.VersionCombo;
 import de.maria_writes_code.mcsm.backend.features.server.ActiveServer;
@@ -70,7 +73,11 @@ public class ServerManagementEndpoints {
                 }
             } finally {
                 // close socket
-                ws.accept(null);
+                try {
+                    ws.close(CloseStatus.SERVER_ERROR);
+                } catch (IOExceptionGroup e) {
+                    LOGGER.error("One or more sockets failed to close at server error", e);
+                }
             }
         }).start();
         return gateway.register(ws);

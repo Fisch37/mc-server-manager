@@ -107,8 +107,8 @@ export class TypedSocket<Packet> {
         })
     }
 
-    addOnClose(listener: () => any) {
-        this.ws.addEventListener("close", _ => listener());
+    addOnClose(listener: (e: CloseEvent) => any) {
+        this.ws.addEventListener("close", listener);
     }
 }
 
