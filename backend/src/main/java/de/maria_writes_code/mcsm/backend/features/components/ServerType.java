@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 import de.maria_writes_code.mcsm.backend.features.components.configuration.ConfigurationDescriptor;
+import de.maria_writes_code.mcsm.backend.features.components.configuration.ServerConfigurationHelper;
 import de.maria_writes_code.mcsm.backend.features.components.execution_helpers.ServerExecutionHelper;
 import de.maria_writes_code.mcsm.backend.features.components.versions.VersionProvider;
 import de.maria_writes_code.mcsm.backend.features.runtimes.NoSuchRuntimeException;
@@ -48,6 +49,7 @@ public interface ServerType<T extends VersionCombo> {
     ) throws IOException;
     
     ServerExecutionHelper getExecutionHelper();
+    ServerConfigurationHelper getConfigurationHelper();
     List<ConfigurationDescriptor<?>> getAvailableProperties();
 
     Map<String, String> fetchVersionProperties(T versions) throws IOException;

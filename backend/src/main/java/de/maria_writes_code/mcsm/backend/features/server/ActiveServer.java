@@ -33,11 +33,6 @@ import de.maria_writes_code.mcsm.backend.utils.Utils;
 
 @NullMarked
 public class ActiveServer {
-    private static final List<String> POTENTIAL_LOG_LOCATIONS = List.of(
-        "logs",
-        "crash-reports"
-    );
-
     private final Context context;
 
     private final UUID id;
@@ -161,8 +156,10 @@ public class ActiveServer {
      * @throws IOException if an I/O error occurs
      */
     public List<LogFile> getLogFiles() throws IOException {
+        var logLocations = context.componentRegistry.getComponent(server.getType())
+            .getConfigurationHelper().getLogDirectories();
         List<LogFile> outputList = new ArrayList<>();
-        for (var logLocation : POTENTIAL_LOG_LOCATIONS) {
+        for (var logLocation : logLocations) {
             var logDir = getLocation().resolve(logLocation);
             try {
                 Files.list(logDir)

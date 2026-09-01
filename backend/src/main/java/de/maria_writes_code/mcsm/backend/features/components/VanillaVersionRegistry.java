@@ -26,6 +26,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import de.maria_writes_code.mcsm.backend.AppConfig;
 import de.maria_writes_code.mcsm.backend.features.components.configuration.ConfigurationDescriptor;
+import de.maria_writes_code.mcsm.backend.features.components.configuration.MinecraftConfigurationHelper;
+import de.maria_writes_code.mcsm.backend.features.components.configuration.ServerConfigurationHelper;
 import de.maria_writes_code.mcsm.backend.features.components.execution_helpers.MinecraftExecutionHelper;
 import de.maria_writes_code.mcsm.backend.features.components.execution_helpers.ServerExecutionHelper;
 import de.maria_writes_code.mcsm.backend.features.components.versions.ServerJar;
@@ -253,5 +255,10 @@ public class VanillaVersionRegistry implements InitializingBean, VersionProvider
                 Pattern.compile("[1-9][0-9]*")
             )
         );
+    }
+
+    @Override
+    public ServerConfigurationHelper getConfigurationHelper() {
+        return new MinecraftConfigurationHelper();
     }
 }

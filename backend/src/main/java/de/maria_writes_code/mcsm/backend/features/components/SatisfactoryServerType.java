@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 import de.maria_writes_code.mcsm.backend.AppConfig;
 import de.maria_writes_code.mcsm.backend.features.components.execution_helpers.ServerExecutionHelper;
 import de.maria_writes_code.mcsm.backend.features.components.configuration.ConfigurationDescriptor;
+import de.maria_writes_code.mcsm.backend.features.components.configuration.SatisfactoryConfigurationHelper;
+import de.maria_writes_code.mcsm.backend.features.components.configuration.ServerConfigurationHelper;
 import de.maria_writes_code.mcsm.backend.features.components.execution_helpers.NativeExecutionHelper;
 import de.maria_writes_code.mcsm.backend.features.components.versions.NoVersions;
 import de.maria_writes_code.mcsm.backend.features.components.versions.VersionProvider;
@@ -96,5 +98,10 @@ public class SatisfactoryServerType implements ServerType<NoVersions> {
     @Override
     public List<ConfigurationDescriptor<?>> getAvailableProperties() {
         return List.of();
+    }
+
+    @Override
+    public ServerConfigurationHelper getConfigurationHelper() {
+        return new SatisfactoryConfigurationHelper();
     }
 }
