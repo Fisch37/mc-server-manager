@@ -14,6 +14,15 @@ Response:
     - A [server object](#server-object)
     - 409 Conflict, if one or more of the specified versions doesn't exist
 
+### POST /server/new/follow
+Create a new server from a template and track the creation process.
+
+Request Body: A [server builder object](#server-builder-object)
+
+Response:
+    - A plain-text [gateway token](#gateway-token) to a [creation socket](#creation-socket)
+    - 409 Conflict, if one or more of the specified versions doesn't exist
+
 ### GET /server/list
 Get a list of servers.
 
@@ -133,6 +142,15 @@ Get information about a single template.
 - Response:
     - A [template summary object](#template-summary-object)
     - 404 Not Found if there is no template of that name
+
+# Gateway
+## GET /gateway?token=<gateway token>
+- Response:
+    - A socket defined by the whatever issued the gateway token
+    - 404 Not Found if no socket for that token exists
+
+## Gateway Token
+Some opaque string.
 
 # WebSockets
 ## Server Status Socket

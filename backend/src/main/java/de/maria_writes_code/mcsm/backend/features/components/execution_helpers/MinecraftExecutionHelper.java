@@ -10,7 +10,7 @@ import org.jspecify.annotations.NullMarked;
 
 import de.maria_writes_code.mcsm.backend.features.runtimes.NoSuchRuntimeException;
 import de.maria_writes_code.mcsm.backend.features.runtimes.RuntimeProvider;
-import de.maria_writes_code.mcsm.backend.features.server.ServerProcess;
+import de.maria_writes_code.mcsm.backend.features.server.StoppableServerProcess;
 import de.maria_writes_code.mcsm.backend.features.server.Terminator;
 import de.maria_writes_code.mcsm.backend.features.templates.ServerTemplate;
 import de.maria_writes_code.mcsm.backend.utils.Utils;
@@ -35,7 +35,7 @@ public class MinecraftExecutionHelper implements ServerExecutionHelper {
      * @throws IllegalStateException if {@code properties} is missing a key
      */
     @Override
-    public ServerProcess startServer(Path location, ServerTemplate template, Map<String, String> properties, Consumer<Integer> onExit)
+    public StoppableServerProcess startServer(Path location, ServerTemplate template, Map<String, String> properties, Consumer<Integer> onExit)
         throws IOException, NoSuchRuntimeException, IllegalStateException
     {
         var executable = template.getDefinition().executable();
@@ -61,7 +61,7 @@ public class MinecraftExecutionHelper implements ServerExecutionHelper {
             .directory(location.toFile())
             .redirectErrorStream(true)
             .start();
-        return new ServerProcess(
+        return new StoppableServerProcess(
             process,
             Terminator.create(executable.terminator()),
             onExit
@@ -69,7 +69,7 @@ public class MinecraftExecutionHelper implements ServerExecutionHelper {
     }
 
     @Override
-    public void waitUntilStarted(ServerProcess process) {
+    public void waitUntilStarted(StoppableServerProcess process) {
         // TODO: Implement this? Maybe.
     }
     

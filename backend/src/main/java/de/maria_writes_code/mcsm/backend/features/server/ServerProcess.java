@@ -1,12 +1,9 @@
 package de.maria_writes_code.mcsm.backend.features.server;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -20,16 +17,14 @@ import de.maria_writes_code.mcsm.backend.utils.Event;
 import de.maria_writes_code.mcsm.backend.utils.ReadOnlyEvent;
 
 public class ServerProcess {
-    private static final Logger LOGGER = LoggerFactory.getLogger("Server");
+    static final Logger LOGGER = LoggerFactory.getLogger("Server");
 
     @NonNull
-    private Process process;
-    @NonNull
-    private Terminator terminator;
+    protected final Process process;
     @NonNull
     private Event<@Nullable String> consoleEvent;
     @NonNull
-    private ConsoleHandler thread;
+    private List<ConsoleHandler> consoleThreads;
     @NonNull
     private Thread waiterThread;
     @Nullable
@@ -37,14 +32,13 @@ public class ServerProcess {
     @NonNull
     private List<String> consoleHistory;
 
-    public ServerProcess(Process process, Terminator terminator, Consumer<Integer> onExit) {
+    public ServerProcess(Process process, Consumer<Integer> onExit) {
         this.process = process;
-        this.terminator = terminator;
         this.consoleEvent = new Event<>();
         this.onExit = onExit;
-        consoleHistory = new ArrayList<>();
-        thread = new ConsoleHandler(process, new ConsoleHandler.Context(consoleEvent::push, consoleHistory));
-        thread.start();
+        consoleHistory = Collections.synchronizedList(new ArrayList<>());
+        consoleThreads = ConsoleHandler.combined(process, new ConsoleHandler.Context(consoleEvent::push, consoleHistory));
+        consoleThreads.forEach(ConsoleHandler::start);
         waiterThread = Thread.ofVirtual()
             .name("WaitOnExit")
             .start(this::waitOnExit);
@@ -97,18 +91,8 @@ public class ServerProcess {
         return consoleEvent;
     }
 
-    public void stop() throws IOException {
-        terminator.terminate(process);
-        var onExit = process.onExit();
-        while (!onExit.isDone()) {
-            try {
-                onExit.get();
-            } catch (InterruptedException ignored) {
-            } catch (ExecutionException|CancellationException e) {
-                LOGGER.error("Unexpected error while waiting on server termination", e);
-                break;
-            }
-        }
+    public void await() throws InterruptedException, ExecutionException {
+        process.onExit().get();
     }
 
     private void waitOnExit() {
@@ -119,39 +103,5 @@ public class ServerProcess {
         } catch (ExecutionException e) {
             LOGGER.error("Some error occurred while awaiting server exit", e);
         }
-    }
-
-    private static class ConsoleHandler extends Thread {
-        private final Process target;
-        private final Context context;
-
-        public ConsoleHandler(Process target, Context context) {
-            super("ConsoleHandler");
-            this.target = target;
-            this.context = context;
-            setDaemon(true);
-        }
-
-        @Override
-        public void run() {
-            var stream = new BufferedReader(new InputStreamReader(target.getInputStream()));
-            String line;
-            while (true) {
-                try {
-                    line = stream.readLine();
-                } catch (IOException e) {
-                    LOGGER.error("I/O error while reading process output", e);
-                    continue;
-                }
-                context.onLine.accept(line);
-                context.history.add(line);
-
-                if (line == null) {
-                    break;
-                }
-            }
-        }
-
-        private record Context(Consumer<String> onLine, List<String> history) { }
     }
 }

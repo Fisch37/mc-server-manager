@@ -1,4 +1,4 @@
-import { fetchApi, getWSUrl } from "./shared";
+import { fetchApi, getGatewaySocket, getWSUrl } from "./shared";
 
 export type StatusValue = "stopping"|"stopped"|"crashed"|"starting"|"started";
 
@@ -13,13 +13,17 @@ export type ServerStatus = {
     status: StatusValue
 }
 
-export type ConsoleLine = {
-    server_id: string,
+export type WSLine = {
     line: string
 }
-export type ConsoleBacklog = {
-    server_id: string,
-    backlog: Array<string>
+export type WSBacklog = {
+    backlog: Array<String>
+}
+export type ConsoleLine = WSLine & {
+    server_id: string
+}
+export type ConsoleBacklog = WSBacklog & {
+    server_id: string
 }
 
 export function isStatusAlive(status: StatusValue): boolean {
@@ -34,22 +38,28 @@ export function isStatusAlive(status: StatusValue): boolean {
     }
 }
 
-export async function createServer(
+type CreateServerArgs = {
     name: string,
     template: string,
     versions: { [source_id: string]: string },
     properties: { [key: string]: string }
-) {
+};
+export async function createServer(args: CreateServerArgs) {
     await fetchApi(
         `/server/new`,
         "POST",
-        JSON.stringify({
-            name,
-            template,
-            versions,
-            properties
-        })
+        JSON.stringify(args)
     )
+}
+
+export async function createServerWithSocket(args: CreateServerArgs): Promise<TypedSocket<WSLine|WSBacklog>> {
+    let token = await fetchApi(
+        `/server/new/follow`,
+        "POST",
+        JSON.stringify(args)
+    );
+    
+    return new TypedSocket(getGatewaySocket(token));
 }
 
 export async function getServerList(): Promise<Array<Server>> {
@@ -91,10 +101,14 @@ export class TypedSocket<Packet> {
         this.ws = ws;
     }
 
-    addOnMessage(listener: (line: Packet) => void) {
+    addOnMessage(listener: (line: Packet) => any) {
         this.ws.addEventListener("message", (e) => {
             listener(JSON.parse(e.data))
         })
+    }
+
+    addOnClose(listener: () => any) {
+        this.ws.addEventListener("close", _ => listener());
     }
 }
 

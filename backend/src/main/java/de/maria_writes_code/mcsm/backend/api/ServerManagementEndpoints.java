@@ -1,10 +1,13 @@
 package de.maria_writes_code.mcsm.backend.api;
 
-import static de.maria_writes_code.mcsm.backend.api.EndpointConsts.NO_SERVER_EXISTS;
+import static de.maria_writes_code.mcsm.backend.api.EndpointUtils.NO_SERVER_EXISTS;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -22,6 +25,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import de.maria_writes_code.mcsm.backend.api.websockets.ListenerSocket;
 import de.maria_writes_code.mcsm.backend.features.components.ComponentRegistry;
 import de.maria_writes_code.mcsm.backend.features.components.VersionCombo;
 import de.maria_writes_code.mcsm.backend.features.server.ActiveServer;
@@ -35,6 +39,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 @RequestMapping("server")
 public class ServerManagementEndpoints {
     @Autowired
+    private WebsocketGateway gateway;
+    @Autowired
     private ServerManager manager;
     @Autowired
     private TemplateProvider templateProvider;
@@ -46,11 +52,38 @@ public class ServerManagementEndpoints {
 
     @PostMapping("new")
     public ServerObject createServer(@RequestBody ServerBuilderObject builderParams) {
+        return createServer(builderParams, l -> { });
+    }
+    @PostMapping(value = "new/follow", produces = "text/plain") 
+    public String createServerFollow(@RequestBody ServerBuilderObject builderParams) {
+        var ws = new ListenerSocket();
+        new Thread(() -> {
+            try {
+                createServer(builderParams, ws);
+            } catch (Exception e) {
+                try (var stringWriter = new StringWriter(); var printWriter = new PrintWriter(stringWriter)) {
+                    e.printStackTrace(printWriter);
+                    ws.accept(stringWriter.toString());
+                } catch (IOException ioe) {
+                    ws.accept("I/O error occurred trying to print stack trace of another error. Error is " + e.getMessage());
+                    ioe.printStackTrace();
+                }
+            } finally {
+                // close socket
+                ws.accept(null);
+            }
+        }).start();
+        return gateway.register(ws);
+    }
+    private ServerObject createServer(
+        ServerBuilderObject builderParams,
+        Consumer<String> updateReceiver
+    ) {
         var builder = new ServerBuilder(builderServices);
         try {
             validateProperties(builderParams.template, builderParams.properties);
             builderParams.apply(builder, templateProvider);
-            var server = builder.build();
+            var server = builder.build(updateReceiver);
             manager.add(server);
             return new ServerObject(server);
         } catch (IOException e) {

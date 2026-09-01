@@ -18,7 +18,7 @@ import org.springframework.web.server.ResponseStatusException;
 import de.maria_writes_code.mcsm.backend.features.server.ActiveServer;
 import de.maria_writes_code.mcsm.backend.features.server.ServerManager;
 
-import static de.maria_writes_code.mcsm.backend.api.EndpointConsts.NO_SERVER_EXISTS;
+import static de.maria_writes_code.mcsm.backend.api.EndpointUtils.NO_SERVER_EXISTS;
 
 @RestController
 @RequestMapping("server")

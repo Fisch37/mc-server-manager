@@ -1,16 +1,14 @@
 package de.maria_writes_code.mcsm.backend.api;
 
-import static de.maria_writes_code.mcsm.backend.api.EndpointConsts.NO_SERVER_EXISTS;
+import static de.maria_writes_code.mcsm.backend.api.EndpointUtils.NO_SERVER_EXISTS;
+import static de.maria_writes_code.mcsm.backend.api.EndpointUtils.performWSHandshake;
 
 import java.io.IOException;
-import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.server.ServletServerHttpRequest;
-import org.springframework.http.server.ServletServerHttpResponse;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,12 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.server.ResponseStatusException;
-import org.springframework.web.socket.WebSocketHandler;
-import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
-
 import de.maria_writes_code.mcsm.backend.api.websockets.ConsoleSocket;
 import de.maria_writes_code.mcsm.backend.api.websockets.ServerStatusSocket;
 import de.maria_writes_code.mcsm.backend.features.runtimes.NoSuchRuntimeException;
@@ -130,17 +123,7 @@ public class ServerExecutionEndpoints {
         performWSHandshake(new ConsoleSocket(server));
     }
 
-    private void performWSHandshake(WebSocketHandler handler) {
-        var reqAttrs = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
-        var request = reqAttrs.getRequest();
-        var response = reqAttrs.getResponse();
-        new DefaultHandshakeHandler().doHandshake(
-            new ServletServerHttpRequest(request),
-            new ServletServerHttpResponse(response),
-            handler,
-            Map.of()
-        );
-    }
+    
 
     private ActiveServer getServer(UUID id) throws ResponseStatusException {
         return servers.get(id)

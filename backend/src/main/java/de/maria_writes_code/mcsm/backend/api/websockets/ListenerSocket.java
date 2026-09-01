@@ -1,8 +1,7 @@
 package de.maria_writes_code.mcsm.backend.api.websockets;
 
-import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import java.util.function.Consumer;
 
 import org.jspecify.annotations.Nullable;
@@ -12,38 +11,21 @@ import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.WebSocketSession;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import de.maria_writes_code.mcsm.backend.api.websockets.abc.JsonPublisherSocket;
-import de.maria_writes_code.mcsm.backend.features.server.ActiveServer;
-import de.maria_writes_code.mcsm.backend.features.server.ServerProcess;
-import de.maria_writes_code.mcsm.backend.utils.Utils;
 
-public class ConsoleSocket extends JsonPublisherSocket implements Consumer<String> {
+public class ListenerSocket extends JsonPublisherSocket implements Consumer<String> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ConsoleSocket.class);
 
-    private final UUID serverId;
-    private final WeakReference<ServerProcess> process;
+    protected List<String> backlog = new ArrayList<>();
 
-    public ConsoleSocket(ActiveServer server) {
-        this(server.getId(), server.getProcess());
-    }
+    public ListenerSocket() {
 
-    public ConsoleSocket(UUID serverId, ServerProcess process) {
-        this.serverId = serverId;
-        if (process == null) {
-            throw new IllegalStateException("Cannot open a socket on an empty server");
-        }
-        this.process = new WeakReference<>(process);
-        process.getConsoleEvent().subscribe(this);
     }
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         super.afterConnectionEstablished(session);
 
-        var backlog = Utils.throwIfNull(
-            process.get(),
-            () -> new IllegalStateException("Server Process not available at socket opened")
-        ).getConsoleState();
-        sendMessage(session, new ConsoleBacklogObject(serverId, backlog));
+        sendMessage(session, new BacklogObject(backlog));
     }
 
     @Override
@@ -68,9 +50,10 @@ public class ConsoleSocket extends JsonPublisherSocket implements Consumer<Strin
             }
             return;
         } else {
+            backlog.add(newLine);
             try {
                 publish(
-                    new ConsoleLineObject(serverId, newLine)
+                    new LineObject(newLine)
                 );
             } catch (JsonProcessingException e) {
                 LOGGER.error("Failed to serialize console line object", e);
@@ -80,6 +63,6 @@ public class ConsoleSocket extends JsonPublisherSocket implements Consumer<Strin
         }
     }
 
-    private record ConsoleLineObject(UUID server_id, String line) { }
-    private record ConsoleBacklogObject(UUID server_id, List<String> backlog) { }
+    protected record LineObject(String line) { }
+    protected record BacklogObject(List<String> backlog) { }
 }

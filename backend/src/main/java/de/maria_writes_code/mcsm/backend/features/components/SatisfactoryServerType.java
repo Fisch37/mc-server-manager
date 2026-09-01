@@ -1,12 +1,12 @@
 package de.maria_writes_code.mcsm.backend.features.components;
 
 import java.io.IOException;
-import java.lang.ProcessBuilder.Redirect;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Consumer;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,6 +17,7 @@ import de.maria_writes_code.mcsm.backend.features.components.configuration.Confi
 import de.maria_writes_code.mcsm.backend.features.components.execution_helpers.NativeExecutionHelper;
 import de.maria_writes_code.mcsm.backend.features.components.versions.NoVersions;
 import de.maria_writes_code.mcsm.backend.features.components.versions.VersionProvider;
+import de.maria_writes_code.mcsm.backend.features.server.ServerProcess;
 
 @Service
 public class SatisfactoryServerType implements ServerType<NoVersions> {
@@ -36,17 +37,17 @@ public class SatisfactoryServerType implements ServerType<NoVersions> {
     }
 
     @Override
-    public void fetchExecutableGeneric(VersionCombo versions, Path destination)
+    public void fetchExecutableGeneric(VersionCombo versions, Path destination, Consumer<String> updateReceiver)
             throws IOException, IllegalArgumentException {
-        fetchExecutable(new NoVersions(versions), destination);
+        fetchExecutable(new NoVersions(versions), destination, updateReceiver);
     }
 
     @Override
     // TODO: May be sensible to expand the throws clause here.
-    public void fetchExecutable(NoVersions versions, Path destination) throws IOException {
+    public void fetchExecutable(NoVersions versions, Path destination, Consumer<String> updateReceiver) throws IOException {
         // Satisfactory downloads are done by SteamCMD at runtime.
         // steamcmd +force_install_dir ~/SatisfactoryDedicatedServer +login anonymous +app_update 1690800 validate +quit
-        try {
+        var process = new ServerProcess(
             new ProcessBuilder(List.of(
                 config.getSteamCmd(),
                 "+force_install_dir",
@@ -58,7 +59,13 @@ public class SatisfactoryServerType implements ServerType<NoVersions> {
                 SATISFACTORY_SERVER_ID,
                 "validate",
                 "+quit"
-            )).redirectError(Redirect.INHERIT).redirectOutput(Redirect.INHERIT).start().onExit().get();
+            )).start(),
+            code -> { }
+        );
+        process.getConsoleEvent().subscribe(line -> updateReceiver.accept("Satisfactory: " + line));
+        
+        try {
+            process.await();
         } catch (ExecutionException e) {
             throw new IOException(e);
         } catch (InterruptedException e) {

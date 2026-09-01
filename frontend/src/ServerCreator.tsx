@@ -1,7 +1,7 @@
 import { Button, TextField, Input, Label, Select, ListBox, FieldError, ErrorMessage, Disclosure, Description, Tooltip } from "@heroui/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getTemplates, type VersionInfo, type TemplateSummary, type VersionSource, type ConfigurationOption } from "./api/template";
-import { createServer as createServerAPI } from "./api/server";
+import { createServerWithSocket as createServerAPI, TypedSocket, type WSBacklog, type WSLine } from "./api/server";
 import { Sliders } from "@gravity-ui/icons";
 import type { ApiError } from "./api/shared";
 
@@ -23,6 +23,8 @@ const ServerCreator = ({ onCreated }: ServerCreatorParams) => {
     const [template_version_sources, set_template_version_sources] = useState<Array<VersionSource>>([]);
     const [template_configurations, set_template_configurations] = useState<Array<ConfigurationOption>>([]);
     const [configuration, set_configuration] = useState<{ [key: string]: string }>({});
+    const [process_state, set_process_state] = useState<Array<String>|null>(null);
+    const process_state_end = useRef(null);
     const [error_message, set_error_message] = useState("");
 
     useEffect(() => {
@@ -45,20 +47,24 @@ const ServerCreator = ({ onCreated }: ServerCreatorParams) => {
     useEffect(() => {
         console.log(configuration);
     }, [configuration]);
+    useEffect(() => {
+        process_state_end.current?.scrollIntoView(false);
+    }, [process_state])
 
     async function createServer() {
+        let process_updates: TypedSocket<WSLine|WSBacklog>;
         try {
-            await createServerAPI(
-                chosen_name,
-                chosen_template,
-                chosen_versions,
-                configuration
-            );
+            process_updates = await createServerAPI({
+                name: chosen_name,
+                template: chosen_template,
+                versions: chosen_versions,
+                properties: configuration
+            });
         } catch (e: any) {
-            if ("type" in e && e.type === "api_error") {
+            if (e instanceof Object && "type" in e && e.type === "api_error") {
                 let error = e as ApiError;
                 if (error.response_code == 409) {
-                    set_error_message("Insufficient verison information");
+                    set_error_message("Insufficient version information");
                 } else if (error.response_code == 500) {
                     set_error_message("Internal Server Error");
                 } else if (error.response_code > 500) {
@@ -74,21 +80,31 @@ const ServerCreator = ({ onCreated }: ServerCreatorParams) => {
             }
             return;
         }
-        onCreated();
+        set_process_state([]);
+        process_updates.addOnMessage(message => {
+            if ("backlog" in message) {
+                set_process_state(prev => [...prev, ...message.backlog]);
+            } else if ("line" in message) {
+                set_process_state(prev => [...prev, message.line]);
+            }
+        });
+        process_updates.addOnClose(onCreated);
     }
 
     return (
         <div>
-            <form onSubmit={e => {
-                e.preventDefault();
-                if (template_version_sources.every(source =>
-                    chosen_versions[source.source_id] !== undefined
-                )) {
-                    createServer();
-                } else {
-                    return false;
-                }
-            }}>
+            <form
+                onSubmit={e => {
+                    e.preventDefault();
+                    if (template_version_sources.every(source =>
+                        chosen_versions[source.source_id] !== undefined
+                    )) {
+                        createServer();
+                    } else {
+                        return false;
+                    }
+                }}
+            >
                 <TextField isInvalid={chosen_name.length < 1}>
                     <Label>Name</Label>
                     <Input
@@ -234,10 +250,21 @@ const ServerCreator = ({ onCreated }: ServerCreatorParams) => {
                     <Button
                         type="submit"
                         className="place-self-end mr-2"
+                        isDisabled={process_state !== null}
                     >
                         Create
                     </Button>
                 </div>
+                {process_state !== null && (
+                    <div
+                        className="bg-gray-800 w-full rounded-t-2x1 font-mono"
+                    >
+                        {process_state.map(line => (
+                            <p>{line}</p>
+                        ))}
+                        <div ref={process_state_end} />
+                    </div>
+                )}
             </form>
         </div>
     );

@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
 import org.apache.commons.collections4.map.LinkedMap;
@@ -104,33 +105,37 @@ public class VanillaVersionRegistry implements InitializingBean, VersionProvider
      * @param version The version to download for
      * @param destination The path into which the executable is downloaded.
      */
-    public void fetchExecutable(VanillaVersion version, Path destination) throws IOException {
-        var executablePath = ensureExecutable(version);
+    public void fetchExecutable(VanillaVersion version, Path destination, Consumer<String> updateReceiver) throws IOException {
+        var executablePath = ensureExecutable(version, updateReceiver);
         Files.copy(executablePath, destination);
     }
 
-    private Path ensureExecutable(VanillaVersion version) throws IOException {
+    private Path ensureExecutable(VanillaVersion version, Consumer<String> updateReceiver) throws IOException {
         @Nullable Path path = vanillaJars.findByVersionId(version.id())
             .map(s -> executablePath(s.getSha1()))
             .orElse(null)
             ;
         if (path == null || !path.toFile().isFile()) {
-            path = ensureExecutable(version.fetchVersionDetails());
+            path = ensureExecutable(version.fetchVersionDetails(), updateReceiver);
+        } else {
+            updateReceiver.accept("Using cached jar file");
         }
         return path;
     }
-    private Path ensureExecutable(VanillaVersion.VanillaDetails details) throws IOException {
+    private Path ensureExecutable(VanillaVersion.VanillaDetails details, Consumer<String> updateReceiver) throws IOException {
         var path = executablePath(details);
         if (!path.toFile().isFile()) {
-            fetchExecutable(details);
+            fetchExecutable(details, updateReceiver);
         }
         return path;
     }
 
-    private Path fetchExecutable(VanillaVersion.VanillaDetails details) throws IOException {
+    private Path fetchExecutable(VanillaVersion.VanillaDetails details, Consumer<String> updateReceiver) throws IOException {
         var destination = executablePath(details);
         var url = details.serverJar();
+        updateReceiver.accept("Downloading server jar for version " + details.versionId());
         FileUtils.copyURLToFile(url, destination.toFile());
+        updateReceiver.accept("Server jar downloaded");
         vanillaJars.save(new ServerJar.Vanilla(details.versionId(), details.serverSha1()));
         return destination;
     }
@@ -179,10 +184,10 @@ public class VanillaVersionRegistry implements InitializingBean, VersionProvider
     }
 
     @Override
-    public void fetchExecutableGeneric(VersionCombo versions, Path destination)
+    public void fetchExecutableGeneric(VersionCombo versions, Path destination, Consumer<String> updateReceiver)
         throws IOException, IllegalArgumentException
     {
-        fetchExecutable(convertToVanilla(versions), destination);
+        fetchExecutable(convertToVanilla(versions), destination, updateReceiver);
     }
 
     @Override

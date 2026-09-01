@@ -3,6 +3,7 @@ package de.maria_writes_code.mcsm.backend.features.templates;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.jspecify.annotations.NullMarked;
@@ -76,10 +77,10 @@ public class ServerBuilder {
         return this;
     }
 
-    public ActiveServer build() throws IOException {
-        return build(false);
+    public ActiveServer build(Consumer<String> updateReceiver) throws IOException {
+        return build(false, updateReceiver);
     }
-    public ActiveServer build(boolean allowArbitraryProperties) throws IOException {
+    public ActiveServer build(boolean allowArbitraryProperties, Consumer<String> updateReceiver) throws IOException {
         if (server.getName() == null) {
             throw new IllegalStateException("Server does not have a name");
         }
@@ -111,9 +112,11 @@ public class ServerBuilder {
         }
 
         server.setLastExitCode(0);
+        updateReceiver.accept("Validated server configuration");
         template.apply(
             context.config.getServerLocation().resolve(server.getId().toString()),
-            new VersionCombo.Mapped(server.getCurrentVersionIds())
+            new VersionCombo.Mapped(server.getCurrentVersionIds()),
+            updateReceiver
         );
         return new ActiveServer(context.activeServerContext, server);
     }

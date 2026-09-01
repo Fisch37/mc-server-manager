@@ -6,6 +6,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Optional;
+import java.util.function.Consumer;
+
 import org.apache.commons.io.FileUtils;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.beans.factory.InitializingBean;
@@ -72,10 +74,19 @@ public class ServerTemplate {
         return location.resolve(TEMPLATE_OVERLAY_LOC);
     }
 
-    public void apply(Path path, VersionCombo version) throws IOException, IllegalArgumentException {
-        apply(path, version, true);
+    public void apply(
+        Path path,
+        VersionCombo version,
+        Consumer<String> updateReceiver
+    ) throws IOException, IllegalArgumentException {
+        apply(path, version, true, updateReceiver);
     }
-    private void apply(Path path, VersionCombo version, boolean downloadExecutable) throws IOException, IllegalArgumentException {
+    private void apply(
+        Path path,
+        VersionCombo version,
+        boolean downloadExecutable,
+        Consumer<String> updateReceiver
+    ) throws IOException, IllegalArgumentException {
         var parentTemplate = Optional.ofNullable(definition.parent())
             .map(parent -> parent.id())
             // TODO: Throw an error or warning when the parent template is specified, but does not exist
@@ -84,10 +95,13 @@ public class ServerTemplate {
         if (parentTemplate != null)
             parentTemplate.apply(
                 path, version,
-                definition.executable() == null || definition.parent().inheritExecutable()
+                definition.executable() == null || definition.parent().inheritExecutable(),
+                updateReceiver
             );
 
+        updateReceiver.accept(definition.name() + ": copying files");
         FileUtils.copyDirectory(getFilesLocation().toFile(), path.toFile());
+        updateReceiver.accept(definition.name() + ": finished file copy");
         for (var overlay : definition.overlays()) {
             if (
                 overlay.versions()
@@ -97,17 +111,22 @@ public class ServerTemplate {
                         context.componentRegistry
                     ))
             ) {
-               var overlay_src = getOverlayLocation().resolve(overlay.location());
-               FileUtils.copyDirectory(overlay_src.toFile(), path.toFile());
+                updateReceiver.accept(definition.name() + ": applying overlay");
+                var overlay_src = getOverlayLocation().resolve(overlay.location());
+                FileUtils.copyDirectory(overlay_src.toFile(), path.toFile());
+                updateReceiver.accept(definition.name() + ": overlay applied");
             }
         }
 
         if (downloadExecutable) {
+            updateReceiver.accept(definition.name() + ": downloading executable");
             context.componentRegistry.getComponent(definition.type())
                 .fetchExecutableGeneric(
                     version,
-                    path.resolve(definition.executable().file())
+                    path.resolve(definition.executable().file()),
+                    updateReceiver
                 );
+            updateReceiver.accept(definition.name() + ": downloaded executable");
         }
     }
 

@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
@@ -82,14 +83,16 @@ public class FabricComponent implements ServerType<FabricVersions>, Initializing
     }
 
     @Override
-    public void fetchExecutableGeneric(VersionCombo versions, Path destination)
+    public void fetchExecutableGeneric(VersionCombo versions, Path destination, Consumer<String> updateReceiver)
             throws IOException, IllegalArgumentException {
-        fetchExecutable(new FabricVersions(versions), destination);
+        fetchExecutable(new FabricVersions(versions), destination, updateReceiver);
     }
 
     @Override
-    public void fetchExecutable(FabricVersions versions, Path destination) throws IOException {
+    public void fetchExecutable(FabricVersions versions, Path destination, Consumer<String> updateReceiver) throws IOException {
+        updateReceiver.accept("Downloading fabric jar");
         FileUtils.copyURLToFile(versions.getJarURL(), destination.toFile());
+        updateReceiver.accept("Fabric download complete");
     }
 
     public static class LoaderProvider extends VersionProvider.LinkedMapProvider<FabricVersions.LoaderVersion> {

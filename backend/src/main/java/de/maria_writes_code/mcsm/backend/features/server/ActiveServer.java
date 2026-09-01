@@ -46,7 +46,7 @@ public class ActiveServer {
     //  repo.save will overwrite changes made by other transactions
     private Server server;
     @Nullable
-    private ServerProcess process;
+    private StoppableServerProcess process;
     private Observable<ServerStatus> status;
     
     public ActiveServer(Context context, Server server) {
@@ -77,7 +77,7 @@ public class ActiveServer {
         return status;
     }
 
-    public @Nullable ServerProcess getProcess() {
+    public @Nullable StoppableServerProcess getProcess() {
         return process;
     }
 
