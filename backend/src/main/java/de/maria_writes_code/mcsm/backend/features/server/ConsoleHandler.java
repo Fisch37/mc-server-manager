@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public class ConsoleHandler extends Thread {
+    private final int MAX_CONTINUOUS_IO_ERRORS = 10;
     private final InputStream target;
     private final Context context;
 
@@ -28,14 +29,20 @@ public class ConsoleHandler extends Thread {
     @Override
     public void run() {
         var stream = new BufferedReader(new InputStreamReader(target));
+        int errorCount = 0;
         String line;
         while (true) {
             try {
                 line = stream.readLine();
             } catch (IOException e) {
                 StoppableServerProcess.LOGGER.error("I/O error while reading process output", e);
+                if (++errorCount > MAX_CONTINUOUS_IO_ERRORS) {
+                    e.printStackTrace();
+                    return;
+                }
                 continue;
             }
+            errorCount = 0;
             context.onLine.accept(line);
             context.history.add(line);
 
