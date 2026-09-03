@@ -1,6 +1,6 @@
 <mxfile host="Electron">
   <diagram name="Page-1" id="W9Kmmc40F6Gz2fNp_sXg">
-    <mxGraphModel dx="2849" dy="844" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="2650" dy="703" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -609,16 +609,16 @@
           </mxGeometry>
         </mxCell>
         <mxCell id="3PxWdhG80uX6n8ygFFnl-32" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" value="ConfigurationDescriptor.Number" vertex="1">
-          <mxGeometry height="86" width="240" x="-1067" y="1530" as="geometry" />
+          <mxGeometry height="180" width="240" x="-1067" y="1530" as="geometry" />
         </mxCell>
         <mxCell id="3PxWdhG80uX6n8ygFFnl-33" parent="3PxWdhG80uX6n8ygFFnl-32" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="&amp;nbsp;" vertex="1">
-          <mxGeometry height="26" width="240" y="26" as="geometry" />
+          <mxGeometry height="34" width="240" y="26" as="geometry" />
         </mxCell>
         <mxCell id="3PxWdhG80uX6n8ygFFnl-34" parent="3PxWdhG80uX6n8ygFFnl-32" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" value="" vertex="1">
-          <mxGeometry height="8" width="240" y="52" as="geometry" />
+          <mxGeometry height="8" width="240" y="60" as="geometry" />
         </mxCell>
-        <mxCell id="3PxWdhG80uX6n8ygFFnl-35" parent="3PxWdhG80uX6n8ygFFnl-32" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="&amp;nbsp;" vertex="1">
-          <mxGeometry height="26" width="240" y="60" as="geometry" />
+        <mxCell id="3PxWdhG80uX6n8ygFFnl-35" parent="3PxWdhG80uX6n8ygFFnl-32" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="+ Number(id: String, name: String, description: String|null, placeholder: String|null, defaultValue: Double|null, min: Double|null, max: Double|null, required: boolean)&lt;div&gt;+ getMin(): Double|null&lt;/div&gt;&lt;div&gt;+ getMax(): Double|null&lt;/div&gt;" vertex="1">
+          <mxGeometry height="112" width="240" y="68" as="geometry" />
         </mxCell>
         <mxCell id="3PxWdhG80uX6n8ygFFnl-37" connectable="0" parent="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="bind T: Double" vertex="1">
           <mxGeometry x="-900" y="1504" as="geometry" />

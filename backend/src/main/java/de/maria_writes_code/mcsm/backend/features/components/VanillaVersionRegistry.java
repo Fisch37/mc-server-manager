@@ -12,8 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.regex.Pattern;
-
 import org.apache.commons.collections4.map.LinkedMap;
 import org.apache.commons.io.FileUtils;
 import org.jspecify.annotations.Nullable;
@@ -232,17 +230,19 @@ public class VanillaVersionRegistry implements InitializingBean, VersionProvider
                 "Minimum RAM",
                 "in MiB",
                 null,
-                null,
                 false,
+                null,
+                1d,
                 null
             ),
             new ConfigurationDescriptor.Number(
                 "max-heap",
                 "Maximum RAM",
+                null,
                 "in MiB",
-                null,
-                null,
                 false,
+                null,
+                1d,
                 null
             ),
             new ConfigurationDescriptor.Number(
@@ -250,9 +250,7 @@ public class VanillaVersionRegistry implements InitializingBean, VersionProvider
                 "Java Version",
                 "",
                 "The minimum Java Version required for this server",
-                null,
-                false,
-                Pattern.compile("[1-9][0-9]*")
+                false
             )
         );
     }

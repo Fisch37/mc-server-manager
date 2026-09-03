@@ -247,7 +247,9 @@ Some opaque string.
         }
     ],
     "default_value"?: <string|number>, // number only when type is "number" (in which case only a number is allowed) otherwise string
-    "value_filter"?: <regular expression> // only when type is "text" or "number"
+    "value_filter"?: <regular expression>, // only when type is "text" or "number"
+    "min"?: <number>, // only when type is "number"
+    "max"?: <number> // only when type is "number"
 }
 ```
 

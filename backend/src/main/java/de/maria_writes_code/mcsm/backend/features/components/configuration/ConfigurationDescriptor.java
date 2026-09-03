@@ -128,14 +128,29 @@ public abstract sealed class ConfigurationDescriptor<T>
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static final class Number extends ConfigurationDescriptor.ArbitraryValue<Double> {
+        private final @Nullable Double min, max;
+
         public Number(
             String id, String name,
             @Nullable String placeholder, @Nullable String description,
-            @Nullable Double defaultValue,
             boolean required,
-            @Nullable Pattern valueRegex
+            @Nullable Double defaultValue,
+            @Nullable Double min,
+            @Nullable Double max
         ) {
-            super(id, name, placeholder, description, defaultValue, required, valueRegex);
+            super(id, name, placeholder, description, defaultValue, required, null);
+            this.min = min;
+            this.max = max;
+        }
+
+        public Number(
+            String id,
+            String name,
+            @Nullable String placeholder,
+            @Nullable String description,
+            boolean required
+        ) {
+            this(id, name, placeholder, description, required, null, null, null);
         }
 
         @Override
@@ -145,6 +160,14 @@ public abstract sealed class ConfigurationDescriptor<T>
             } catch (NumberFormatException e) {
                 throw new IllegalArgumentException("Input for number configuration cannot be interpreted as a number", e);
             }
+        }
+
+        public @Nullable Double getMin() {
+            return min;
+        }
+
+        public @Nullable Double getMax() {
+            return max;
         }
     }
 
