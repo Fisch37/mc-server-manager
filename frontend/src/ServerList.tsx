@@ -1,6 +1,6 @@
 import { ArrowsRotateRight, Play, Server as ServerIcon, ServerPlus, Stop } from "@gravity-ui/icons";
 import { useNavigate } from "react-router";
-import { getServerList, restartServer, startServer, stopServer, type Server } from "./api/server";
+import { getServerList, isStatusAlive, restartServer, startServer, stopServer, type Server } from "./api/server";
 import { useEffect, useState } from "react";
 import { Button, Modal } from "@heroui/react";
 import ServerCreator from "./ServerCreator";
@@ -64,7 +64,7 @@ const ServerList = () => {
                                     <a onClick={() => navigate(serverPageUrl)}>{server.name}</a>
                                 </span>
                                 <span className="align-middle ml-5">
-                                    {server.status === "started" && (
+                                    {isStatusAlive(server.status) && (
                                         <span>
                                         <button className="align-middle" onClick={() => stopServer(server.id)}>
                                             <Stop width={24} className="align-middle" />
@@ -74,7 +74,7 @@ const ServerList = () => {
                                         </button>
                                         </span>
                                     ) }
-                                    {server.status === "stopped" && (
+                                    {!isStatusAlive(server.status) && (
                                         <button className="align-middle" onClick={() => startServer(server.id)}>
                                             <Play width={24} className="align-middle" />
                                         </button>
