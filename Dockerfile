@@ -56,13 +56,7 @@ FROM runtime
 COPY frontend/nginx.conf /etc/nginx/sites-enabled/default
 COPY --from=build_deno /build/dist /usr/share/nginx/html
 COPY --from=build_java /tmp/app.jar ./app.jar
+COPY start.sh start.sh
 
 # ENTRYPOINT ["java", "-jar", "app.jar"]
-CMD ["bash", "-lc", "\
-  su $(id -nu 1000) -c \"java -jar app.jar & JAVA_PID=$!\"; \
-  nginx -g 'daemon off;' & NGINX_PID=$!; \
-  trap 'kill -TERM $JAVA_PID $NGINX_PID; wait' TERM INT; \
-  wait -n; \
-  kill -TERM $JAVA_PID $NGINX_PID; \
-  wait \
-"]
+CMD [ "./start.sh" ]
