@@ -1,4 +1,5 @@
 import { fetchApi, getGatewaySocket, getWSUrl } from "./shared";
+import type { ConfigurationOption } from "./template";
 
 export type StatusValue = "stopping"|"stopped"|"crashed"|"starting"|"started";
 
@@ -29,6 +30,14 @@ export type ConsoleLine = WSLine & {
 }
 export type ConsoleBacklog = WSBacklog & {
     server_id: string
+}
+
+export type ServerConfiguration = {
+    value?: string|number,
+    description: ConfigurationOption
+}
+export type ServerConfigurationChange = {
+    [config_id: string]: string
 }
 
 export function isStatusAlive(status: StatusValue): boolean {
@@ -97,6 +106,14 @@ export async function changeServer(id: string, changes: ChangeServer) {
 
 export async function deleteServer(id: string) {
     return await fetchApi(`/server/${id}`, "DELETE")
+}
+
+export async function getConfiguration(id: string): Promise<Array<ServerConfiguration>> {
+    return await fetchApi(`/server/${id}/configuration`);
+}
+
+export async function changeConfiguration(id: string, changes: ServerConfigurationChange) {
+    await fetchApi(`/server/${id}/configuration`, "PATCH", JSON.stringify(changes))
 }
 
 export class TypedSocket<Packet> {

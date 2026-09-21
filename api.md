@@ -53,6 +53,23 @@ Response:
     - 204 No Content on a success
     - 404 Not Found if no server exists with that id
 
+### GET /server/{id}/configuration
+Get the current configuration of a server.
+
+Response:
+    - a list of [server configuration objects](#server-configuration-object)
+    - 404 Not Found if no server exists with that id
+
+### PATCH /server/{id}/configuration
+Change the configuration of a server.
+
+Request Body: A [server configuration change object](#server-configuration-change-object)
+
+Response:
+    - 204 No Content on a success
+    - 409 Conflict if one or more of the configuration values either does not exist or is not a legal value for the configuration.
+    - 404 Not Found if no server exists with that id
+
 ## Server Execution
 ### GET /server/{id}/status
 Get the current server status.
@@ -197,6 +214,21 @@ Some opaque string.
 {
     "name"?: <string>,
     "autostart"?: <boolean>
+}
+```
+
+### Server Configuration Object
+```json
+{
+    "value"?: <string|number>,
+    "description": <configuration option object>
+}
+```
+
+### Server Configuration Change Object
+```json
+{
+    <configuration id>: <string>
 }
 ```
 

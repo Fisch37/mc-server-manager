@@ -76,7 +76,7 @@ public class ActiveServer {
         return process;
     }
 
-    private @Nullable ServerTemplate getTemplate() {
+    public @Nullable ServerTemplate getTemplate() {
         return context.templateProvider.getTemplate(server.getTemplateId());
     }
 

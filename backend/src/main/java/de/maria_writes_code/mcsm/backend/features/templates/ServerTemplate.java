@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 
 import de.maria_writes_code.mcsm.backend.features.components.ComponentRegistry;
+import de.maria_writes_code.mcsm.backend.features.components.ServerType;
 import de.maria_writes_code.mcsm.backend.features.components.VersionCombo;
 import de.maria_writes_code.mcsm.backend.utils.Utils;
 
@@ -64,6 +65,10 @@ public class ServerTemplate {
 
     public ServerTemplateDefinition getDefinition() {
         return definition;
+    }
+
+    public ServerType<?> getServerType() {
+        return context.componentRegistry.getComponent(definition.type());
     }
 
     private Path getFilesLocation() {

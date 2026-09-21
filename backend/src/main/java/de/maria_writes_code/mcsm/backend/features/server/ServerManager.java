@@ -85,4 +85,8 @@ public class ServerManager implements InitializingBean {
             );
         }
     }
+
+    public void save(ActiveServer server) {
+        repo.save(server.getServer());
+    }
 }

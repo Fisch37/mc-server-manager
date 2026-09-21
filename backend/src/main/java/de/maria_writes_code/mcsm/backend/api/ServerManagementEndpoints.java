@@ -6,7 +6,10 @@ import static de.maria_writes_code.mcsm.backend.api.EndpointUtils.NO_SERVER_EXIS
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -31,6 +34,7 @@ import de.maria_writes_code.mcsm.backend.api.websockets.ListenerSocket;
 import de.maria_writes_code.mcsm.backend.api.websockets.abc.PublisherSocket.IOExceptionGroup;
 import de.maria_writes_code.mcsm.backend.features.components.ComponentRegistry;
 import de.maria_writes_code.mcsm.backend.features.components.VersionCombo;
+import de.maria_writes_code.mcsm.backend.features.components.configuration.ConfigurationDescriptor;
 import de.maria_writes_code.mcsm.backend.features.server.ActiveServer;
 import de.maria_writes_code.mcsm.backend.features.server.Server;
 import de.maria_writes_code.mcsm.backend.features.server.ServerManager;
@@ -156,6 +160,51 @@ public class ServerManagementEndpoints {
         serverRepo.save(changes.apply(server));
     }
 
+    @GetMapping("{id}/configuration")
+    public Stream<ServerConfigurationObject<?>> getConfiguration(
+        @PathVariable UUID id
+    ) {
+        var server = manager.get(id).orElseThrow(NO_SERVER_EXISTS);
+        var remaining_properties = new HashMap<>(server.getServer().getProperties());
+        var configurationOptions = Objects.requireNonNull(
+            server.getTemplate(),
+            "Cannot get configuration because template is missing"
+        ).getServerType().getAvailableProperties();
+        return configurationOptions.stream()
+            .map(c -> new ServerConfigurationObject<Object>(
+                (ConfigurationDescriptor<Object>)c,
+                Optional.ofNullable(remaining_properties.remove(c.getId()))
+                    .map(s -> c.validate(s))
+                    .orElse(null)
+            ));
+    }
+
+    @PatchMapping("{id}/configuration")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void changeConfiguration(
+        @PathVariable UUID id,
+        @RequestBody Map<String, String> changes
+    ) {
+        var server = manager.get(id).orElseThrow(NO_SERVER_EXISTS);
+        var configDescriptors = server.getTemplate().getServerType().getAvailableProperties()
+            .stream()
+            .collect(Collectors.toMap(c -> c.getId(), Function.identity()));
+        var it = changes.entrySet().iterator();
+        try {
+            while (it.hasNext()) {
+                var change = it.next();
+                var descriptor = configDescriptors.get(change.getKey());
+                if (descriptor == null)
+                    throw new IllegalArgumentException();
+                else
+                    descriptor.validate(change.getValue());
+            }
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "", e);
+        }
+        server.getServer().getProperties().putAll(changes);
+    }
+
     private void validateProperties(String templateId, Map<String, String> properties) throws ResponseStatusException {
         var template = templateProvider.getTemplate(templateId);
         if (template == null)
@@ -224,4 +273,9 @@ public class ServerManagementEndpoints {
             return server;
         }
     }
+
+    public record ServerConfigurationObject<T>(
+        ConfigurationDescriptor<T> description,
+        @Nullable T value
+    ) { }
 }

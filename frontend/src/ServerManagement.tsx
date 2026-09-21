@@ -1,18 +1,20 @@
-import { Button, Chip, Description, Input, ListBox, Select, Separator, Switch, Tabs, type AlertVariants } from "@heroui/react";
+import { Button, Chip, Description, Input, ListBox, Select, Switch, Tabs, type AlertVariants } from "@heroui/react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import {
     getServerInfo, isStatusAlive, restartServer as restartServerAPI, sendConsole as sendConsoleAPI,
     changeServer as changeServerAPI, deleteServer as deleteServerAPI,
     startServer as startServerAPI, stopServer as stopServerAPI, openServerStatusSocket,
-    openConsoleSocketSync
+    openConsoleSocketSync,
+    getConfiguration,
+    changeConfiguration as changeConfigurationAPI
 } from "./api/server";
-import type { ChangeServer, ConsoleBacklog, ConsoleLine, Server, StatusValue, TypedSocket } from "./api/server";
+import type { ChangeServer, ConsoleBacklog, ConsoleLine, Server, ServerConfiguration, StatusValue, TypedSocket } from "./api/server";
 import { getLogContent, getLogFiles } from "./api/log";
 import { alertApiError, switchValue } from "./utils";
 import type { AlertInfo } from "./AlertQueue";
 import type { ApiError } from "./api/shared";
-import { Heading3 } from "@gravity-ui/icons";
+import ConfigurationEditor from "./ConfigurationView";
 
 const WS_CLOSING_STATES: Array<number> = [WebSocket.CLOSING, WebSocket.CLOSED];
 
@@ -241,7 +243,7 @@ const ServerManagement = () => {
     return (
         <div className="w-full h-screen">
             <div>
-                <span style={{"fontSize": "x-large"}}>{server_info === null ? "" : server_info.name}</span>
+                <span style={{fontSize: "x-large"}}>{server_info === null ? "" : server_info.name}</span>
                 <span className="ml-4">
                     {
                         // type StatusValue = "stopping" | "stopped" | "crashed" | "starting" | "started"
@@ -335,7 +337,7 @@ const ServerManagement = () => {
                                 isStatusAlive(server_status)
                                     ? (
                                         <div className="mx-auto size-fit">
-                                            <Button className="inline bg-red-500 mx-2" onClick={() => stopServer()}>Stop</Button>
+                                            <Button className="inline mx-2" variant="danger" onClick={() => stopServer()}>Stop</Button>
                                             <Button className="inline bg-blue-500" onClick={() => restartServer()}>Restart</Button>
                                         </div>
                                     )
@@ -398,7 +400,7 @@ const ServerManagement = () => {
 };
 
 type ServerSettingsParams = {
-    server_id: string,
+    server_id: string
     server_info: Server|null
     on_refresh: () => any
 };
@@ -406,6 +408,13 @@ const ServerSettings = ({server_id, server_info, on_refresh}: ServerSettingsPara
     const navigate = useNavigate();
     const [new_name, set_new_name] = useState("");
     const [autostart, set_autostart] = useState(server_info?.autostart || false);
+    const [configuration, set_configuration] = useState<Array<ServerConfiguration>>([ ]);
+    const [config_changes, set_config_changes] = useState<{[id: string]: string}>({ });
+    useEffect(() => {
+        getConfiguration(server_id)
+            .then(set_configuration)
+            .catch(console.error)
+    }, []);
 
     async function changeServer() {
         let update: ChangeServer = { };
@@ -415,6 +424,10 @@ const ServerSettings = ({server_id, server_info, on_refresh}: ServerSettingsPara
         on_refresh();
     }
 
+    async function changeConfiguration() {
+        await changeConfigurationAPI(server_id, config_changes);
+    }
+
     async function deleteServer() {
         await deleteServerAPI(server_id);
         navigate("/");
@@ -422,9 +435,12 @@ const ServerSettings = ({server_id, server_info, on_refresh}: ServerSettingsPara
 
     return (
         <>
-            <Heading3>Server Properties</Heading3>
-            
-            <Heading3>MCSM Settings</Heading3>
+            <p style={{fontSize: "large"}}>Server Properties</p>
+            <form onSubmit={e => {e.preventDefault(); changeConfiguration()}}>
+                <ConfigurationEditor current_values={configuration} onValueChange={set_config_changes} />
+                <Button type="submit">Apply</Button>
+            </form>
+            <h2>MCSM Settings</h2>
             <form onSubmit={e => {e.preventDefault(); changeServer()}}>
                 <Input
                     className="inline"
