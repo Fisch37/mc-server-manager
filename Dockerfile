@@ -50,6 +50,7 @@ EXPOSE 8080
 
 VOLUME /var/mcsm/
 RUN mkdir /var/mcsm
+RUN chown 1000:1000 /var/mcsm
 
 FROM runtime
 
