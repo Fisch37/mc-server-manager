@@ -44,13 +44,13 @@ Response:
     - 409 Conflict, if the server is not `"started"` or `"crashed"`,
         containing the current [server status](#server-status-object)
 
-### PUT /server/{id}/name
-Change the name of the specified server.
+### PATCH /server/{id}
+Change the settings of the server.
 
-Request Body: A string with the new name.
+Request Body: A [server change object](#server-change-object)
 
 Response:
-    - the new [server object](#server-object)
+    - 204 No Content on a success
     - 404 Not Found if no server exists with that id
 
 ## Server Execution
@@ -173,7 +173,8 @@ Some opaque string.
 {
     "id": <uuid string>,
     "name": <string>,
-    "status": "stopping"|"stopped"|"crashed"|"starting"|"started"
+    "status": "stopping"|"stopped"|"crashed"|"starting"|"started",
+    "autostart": <boolean>
 }
 ```
 
@@ -188,6 +189,14 @@ Some opaque string.
     "properties": {
         <key string>: <value string>
     }
+}
+```
+
+### Server Change Object
+```json
+{
+    "name"?: <string>,
+    "autostart"?: <boolean>
 }
 ```
 

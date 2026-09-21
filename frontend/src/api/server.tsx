@@ -5,7 +5,12 @@ export type StatusValue = "stopping"|"stopped"|"crashed"|"starting"|"started";
 export type Server = {
     id: string,
     name: string,
-    status: StatusValue
+    status: StatusValue,
+    autostart: boolean
+};
+export type ChangeServer = {
+    name?: string,
+    autostart?: boolean
 };
 
 export type ServerStatus = {
@@ -86,8 +91,8 @@ export async function sendConsole(id: string, line: string) {
     return await fetchApi(`/server/${id}/console`, "POST", line, "text/plain");
 }
 
-export async function renameServer(id: string, newName: string) {
-    return await fetchApi(`/server/${id}/name`, "PUT", newName, "text/plain");
+export async function changeServer(id: string, changes: ChangeServer) {
+    return await fetchApi(`/server/${id}`, "PATCH", JSON.stringify(changes));
 }
 
 export async function deleteServer(id: string) {

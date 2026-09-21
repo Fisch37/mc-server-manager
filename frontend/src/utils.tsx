@@ -21,3 +21,7 @@ export function alertApiError(
         console.error(e);
     }
 }
+
+export function switchValue(flag: boolean): string {
+    return flag ? "on" : "off";
+}

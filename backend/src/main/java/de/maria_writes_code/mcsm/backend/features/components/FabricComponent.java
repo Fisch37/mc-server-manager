@@ -25,7 +25,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import de.maria_writes_code.mcsm.backend.features.components.configuration.ConfigurationDescriptor;
-import de.maria_writes_code.mcsm.backend.features.components.configuration.MinecraftConfigurationHelper;
 import de.maria_writes_code.mcsm.backend.features.components.configuration.ServerConfigurationHelper;
 import de.maria_writes_code.mcsm.backend.features.components.execution_helpers.MinecraftExecutionHelper;
 import de.maria_writes_code.mcsm.backend.features.components.execution_helpers.ServerExecutionHelper;

@@ -13,14 +13,14 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -32,7 +32,9 @@ import de.maria_writes_code.mcsm.backend.api.websockets.abc.PublisherSocket.IOEx
 import de.maria_writes_code.mcsm.backend.features.components.ComponentRegistry;
 import de.maria_writes_code.mcsm.backend.features.components.VersionCombo;
 import de.maria_writes_code.mcsm.backend.features.server.ActiveServer;
+import de.maria_writes_code.mcsm.backend.features.server.Server;
 import de.maria_writes_code.mcsm.backend.features.server.ServerManager;
+import de.maria_writes_code.mcsm.backend.features.server.ServerRepository;
 import de.maria_writes_code.mcsm.backend.features.server.ServerStatus;
 import de.maria_writes_code.mcsm.backend.features.templates.ServerBuilder;
 import de.maria_writes_code.mcsm.backend.features.templates.TemplateProvider;
@@ -45,6 +47,8 @@ public class ServerManagementEndpoints {
     private WebsocketGateway gateway;
     @Autowired
     private ServerManager manager;
+    @Autowired
+    private ServerRepository serverRepo;
     @Autowired
     private TemplateProvider templateProvider;
     @Autowired
@@ -63,6 +67,7 @@ public class ServerManagementEndpoints {
         new Thread(() -> {
             try {
                 createServer(builderParams, ws);
+                ws.accept(null);
             } catch (Exception e) {
                 try (var stringWriter = new StringWriter(); var printWriter = new PrintWriter(stringWriter)) {
                     e.printStackTrace(printWriter);
@@ -71,12 +76,11 @@ public class ServerManagementEndpoints {
                     ws.accept("I/O error occurred trying to print stack trace of another error. Error is " + e.getMessage());
                     ioe.printStackTrace();
                 }
-            } finally {
                 // close socket
                 try {
                     ws.close(CloseStatus.SERVER_ERROR);
-                } catch (IOExceptionGroup e) {
-                    LOGGER.error("One or more sockets failed to close at server error", e);
+                } catch (IOExceptionGroup e2) {
+                    LOGGER.error("One or more sockets failed to close at server error", e2);
                 }
             }
         }).start();
@@ -140,18 +144,16 @@ public class ServerManagementEndpoints {
         }
     }
 
-    @PutMapping(value = "{id}/name", consumes = { MediaType.TEXT_PLAIN_VALUE })
+    @PatchMapping("{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void renameServer(
+    public void changeServer(
         @PathVariable UUID id,
-        @RequestBody String newName
+        @RequestBody ServerChangeObject changes
     ) {
-        var server = manager.get(id).orElse(null);
-        if (server == null) {
-            throw NO_SERVER_EXISTS.get();
-        } else {
-            server.rename(newName);
-        }
+        var server = manager.get(id)
+            .orElseThrow(NO_SERVER_EXISTS)
+            .getServer();
+        serverRepo.save(changes.apply(server));
     }
 
     private void validateProperties(String templateId, Map<String, String> properties) throws ResponseStatusException {
@@ -184,9 +186,14 @@ public class ServerManagementEndpoints {
         }
     }
 
-    public record ServerObject(UUID id, String name, ServerStatus status) {
+    public record ServerObject(UUID id, String name, ServerStatus status, boolean autostart) {
         public ServerObject(ActiveServer server) {
-            this(server.getId(), server.getServer().getName(), server.getStatus());
+            this(
+                server.getId(),
+                server.getServer().getName(),
+                server.getStatus(),
+                server.getServer().isAutostart()
+            );
         }
     }
     public record ServerBuilderObject(
@@ -204,6 +211,17 @@ public class ServerManagementEndpoints {
                 .setTemplate(template)
                 .setVersions(new VersionCombo.Mapped(versions))
                 .setProperties(properties);
+        }
+    }
+
+    public record ServerChangeObject(
+        @Nullable String name,
+        @Nullable Boolean autostart
+    ) {
+        public Server apply(Server server) {
+            if (name != null) server.setName(name);
+            if (autostart != null) server.setAutostart(autostart);
+            return server;
         }
     }
 }

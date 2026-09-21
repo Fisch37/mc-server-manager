@@ -5,6 +5,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import org.hibernate.annotations.ColumnDefault;
 import org.jspecify.annotations.NullUnmarked;
 
 import de.maria_writes_code.mcsm.backend.features.components.ComponentIdentifier;
@@ -41,6 +42,9 @@ public class Server {
     )
     private Map<String, String> properties = new HashMap<>();
 
+    @Column @ColumnDefault("false")
+    private boolean autostart;
+
     public Server() {
         id = UUID.randomUUID();
     }
@@ -58,6 +62,7 @@ public class Server {
         lastExitCode = original.lastExitCode;
         properties = new HashMap<>(original.properties);
         type = original.type;
+        autostart = original.autostart;
     }
 
 
@@ -112,5 +117,12 @@ public class Server {
     /// Returns a modifiable view over the properties of this server.
     public Map<String, String> getProperties() {
         return properties;
+    }
+
+    public boolean isAutostart() {
+        return autostart;
+    }
+    public void setAutostart(boolean autostart) {
+        this.autostart = autostart;
     }
 }

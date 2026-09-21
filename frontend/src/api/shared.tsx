@@ -1,7 +1,7 @@
-// const WS_ROOT = () => "ws://localhost:8080";
-// const API_ROOT = () => "http://localhost:8080";
-const WS_ROOT = () => `${window.location.origin.replace(RegExp("^http"), "ws")}/api`;
-const API_ROOT = () => `${window.location.origin}/api`;
+const WS_ROOT = () => "ws://localhost:8080";
+const API_ROOT = () => "http://localhost:8080";
+// const WS_ROOT = () => `${window.location.origin.replace(RegExp("^http"), "ws")}/api`;
+// const API_ROOT = () => `${window.location.origin}/api`;
 
 export type ApiError = {
     type: "api_error"

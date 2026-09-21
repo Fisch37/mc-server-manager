@@ -1,17 +1,18 @@
-import { Button, Chip, Input, ListBox, Select, Tabs, type AlertVariants } from "@heroui/react";
+import { Button, Chip, Description, Input, ListBox, Select, Separator, Switch, Tabs, type AlertVariants } from "@heroui/react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import {
     getServerInfo, isStatusAlive, restartServer as restartServerAPI, sendConsole as sendConsoleAPI,
-    renameServer as renameServerAPI, deleteServer as deleteServerAPI,
+    changeServer as changeServerAPI, deleteServer as deleteServerAPI,
     startServer as startServerAPI, stopServer as stopServerAPI, openServerStatusSocket,
     openConsoleSocketSync
 } from "./api/server";
-import type { ConsoleBacklog, ConsoleLine, Server, StatusValue, TypedSocket } from "./api/server";
+import type { ChangeServer, ConsoleBacklog, ConsoleLine, Server, StatusValue, TypedSocket } from "./api/server";
 import { getLogContent, getLogFiles } from "./api/log";
-import { alertApiError } from "./utils";
+import { alertApiError, switchValue } from "./utils";
 import type { AlertInfo } from "./AlertQueue";
 import type { ApiError } from "./api/shared";
+import { Heading3 } from "@gravity-ui/icons";
 
 const WS_CLOSING_STATES: Array<number> = [WebSocket.CLOSING, WebSocket.CLOSED];
 
@@ -46,7 +47,6 @@ function alertApiErrorImproved(
 
 const ServerManagement = () => {
     const server_id = useParams().server_id;
-    const navigate = useNavigate();
 
     const [server_info, set_server_info] = useState<Server|null>(null);
     const [server_status, set_server_status] = useState<StatusValue|null>(null);
@@ -59,14 +59,12 @@ const ServerManagement = () => {
     const [available_logs, set_available_logs] = useState<Array<string>>([]);
     const [log_content, set_log_content] = useState("");
     
-    const [server_new_name, set_server_new_name] = useState("");
     const console_socket = useRef<TypedSocket<ConsoleLine|ConsoleBacklog>|null>(null);
 
     function fetchAndSetServerInfo() {
         getServerInfo(server_id)
             .then(value => {
                 set_server_info(value);
-                set_server_new_name(value.name);
                 set_server_status(value.status);
             })
             .catch(e => {
@@ -142,16 +140,6 @@ const ServerManagement = () => {
     async function sendConsole() {
         await sendConsoleAPI(server_id, console_input);
         set_console_input("");
-    }
-
-    async function renameServer() {
-        await renameServerAPI(server_id, server_new_name);
-        fetchAndSetServerInfo();
-    }
-
-    async function deleteServer() {
-        await deleteServerAPI(server_id);
-        navigate("/");
     }
 
     async function startServer() {
@@ -398,20 +386,66 @@ const ServerManagement = () => {
                     </Select>
                 </Tabs.Panel>
                 <Tabs.Panel id="server-man">
-                    <form onSubmit={e => {e.preventDefault(); renameServer()}}>
-                        <Input
-                            className="inline"
-                            placeholder="Enter a new name for this server"
-                            value={server_new_name}
-                            onChange={(e) => set_server_new_name(e.target.value)}
-                        />
-                        <Button className="bg-blue-500 ml-2" type="submit">Rename</Button>
-                    </form>
-                    <Button className="bg-red-500" onClick={() => deleteServer()}>Delete Server</Button>
+                    <ServerSettings
+                        server_id={server_id}
+                        server_info={server_info}
+                        on_refresh={fetchAndSetServerInfo}
+                    />
                 </Tabs.Panel>
             </Tabs>
         </div>
     )
 };
+
+type ServerSettingsParams = {
+    server_id: string,
+    server_info: Server|null
+    on_refresh: () => any
+};
+const ServerSettings = ({server_id, server_info, on_refresh}: ServerSettingsParams) => {
+    const navigate = useNavigate();
+    const [new_name, set_new_name] = useState("");
+    const [autostart, set_autostart] = useState(server_info?.autostart || false);
+
+    async function changeServer() {
+        let update: ChangeServer = { };
+        if (new_name) update.name = new_name;
+        if (autostart !== server_info?.autostart) update.autostart = autostart;
+        await changeServerAPI(server_id, update);
+        on_refresh();
+    }
+
+    async function deleteServer() {
+        await deleteServerAPI(server_id);
+        navigate("/");
+    }
+
+    return (
+        <>
+            <Heading3>Server Properties</Heading3>
+            
+            <Heading3>MCSM Settings</Heading3>
+            <form onSubmit={e => {e.preventDefault(); changeServer()}}>
+                <Input
+                    className="inline"
+                    placeholder="Enter a new name for this server"
+                    value={new_name}
+                    onChange={(e) => set_new_name(e.target.value)}
+                />
+                <Switch value={switchValue(autostart)} onChange={set_autostart}>
+                    <Switch.Content>
+                        <Switch.Control>
+                            <Switch.Thumb />
+                        </Switch.Control>
+                        Autostart
+                    </Switch.Content>
+                    <Description>If set, this server will automatically start with MCSM</Description>
+                </Switch>
+                <Button className="bg-blue-500 ml-2" type="submit">Apply</Button>
+            </form>
+            <Button className="bg-red-500" onClick={() => deleteServer()}>Delete Server</Button>
+        </>
+    )
+}
 
 export default ServerManagement;
