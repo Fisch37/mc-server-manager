@@ -14,7 +14,7 @@ import { getLogContent, getLogFiles } from "./api/log";
 import { alertApiError, switchValue } from "./utils";
 import type { AlertInfo } from "./AlertQueue";
 import type { ApiError } from "./api/shared";
-import ConfigurationEditor from "./ConfigurationView";
+import ConfigurationEditor from "./ConfigurationEditor";
 
 const WS_CLOSING_STATES: Array<number> = [WebSocket.CLOSING, WebSocket.CLOSED];
 

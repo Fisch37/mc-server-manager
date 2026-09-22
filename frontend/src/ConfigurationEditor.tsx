@@ -1,5 +1,6 @@
 import { Description, Input, Label, ListBox, Select, TextField } from "@heroui/react";
 import type { ServerConfiguration } from "./api/server";
+import { useState } from "react";
 
 type ConfigurationEditorParams = {
     current_values: Array<ServerConfiguration>,
@@ -7,10 +8,18 @@ type ConfigurationEditorParams = {
 }
 
 const ConfigurationEditor = ({current_values: configuration_values, onValueChange}: ConfigurationEditorParams) => {
+    // TODO: This is more of a band-aid than an actual solution
+    //  The real problem is that we rerender this component on every value change
+    const [changes, set_changes] = useState({ });
     return (
         <>
         {configuration_values.map(({value, description: configOption}) => {
             const onChange = (new_value: string) => {
+                set_changes(prev => {
+                    let newObj = {...prev};
+                    newObj[configOption.id] = new_value;
+                    return newObj;
+                })
                 onValueChange((prev) => {
                     let newObj = {...prev};
                     if (new_value) {
@@ -21,6 +30,9 @@ const ConfigurationEditor = ({current_values: configuration_values, onValueChang
                     return newObj;
                 });
             }
+            const getInputValue = (value) => {
+                return changes[configOption.id] === undefined ? value : changes[configOption.id];
+            }
             switch (configOption.type) {
                 case "select":
                     return (
@@ -30,7 +42,7 @@ const ConfigurationEditor = ({current_values: configuration_values, onValueChang
                             placeholder={configOption.placeholder}
                             isRequired={configOption.required}
                             onChange={key => onChange(key as string)}
-                            value={value}
+                            value={getInputValue(value)}
                         >
                             <Label>{configOption.name}</Label>
                             <Select.Trigger>
@@ -69,7 +81,7 @@ const ConfigurationEditor = ({current_values: configuration_values, onValueChang
                                 pattern={configOption.value_filter}
                                 placeholder={configOption.placeholder}
                                 defaultValue={configOption.default_value}
-                                value={value}
+                                value={getInputValue(value)}
                             />
                             {configOption.description && <Description>{configOption.description}</Description>}
                         </TextField>
