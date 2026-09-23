@@ -10,6 +10,10 @@ designed specifically for Minecraft.
     - to support use of Piston API
 - Add filtering by version channel
 - Proper feedback on actions (Server Create, Server Start, Stop, Restart)
+- progress information on server creation
+    - best done using a websocket with ConsoleLines
+        (where the console lines are arbitrary strings sent by the backend)
+    - possibly with an optional query param on /servers/new
 
 # MVP
 - ~~Server Creation~~
@@ -24,15 +28,11 @@ designed specifically for Minecraft.
     - ~~Renames~~
 
 # Post-MVP
-1. progress information on server creation
-    - best done using a websocket with ConsoleLines
-        (where the console lines are arbitrary strings sent by the backend)
-    - possibly with an optional query param on /servers/new
-2. Server Management
+1. Server Management
     - version upgrades
-3. Support for custom components and versioning in templates
+2. Support for custom components and versioning in templates
     - should allow for manually specified versions (to match with overlays)
-4. Mod Management
+3. Mod Management
     - only for non-vanilla instances
         - best marked as a template property
     - list mods
@@ -40,6 +40,6 @@ designed specifically for Minecraft.
     - add mods (by JAR)
     - add mods (via Modrinth)
     - add mods (via CurseForge)
-5. User Management
-6. Map Integration
+4. User Management
+5. Map Integration
     (based on my vanilla map project?)
