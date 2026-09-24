@@ -15,7 +15,7 @@ export type ChangeServer = {
 };
 
 export type ServerStatus = {
-    id: string,
+    server_id: string,
     status: StatusValue
 }
 
@@ -48,6 +48,16 @@ export function isStatusAlive(status: StatusValue): boolean {
             return true;
         case "stopped":
         case "crashed":
+            return false;
+    }
+}
+
+export function isStatusChanging(status: StatusValue): boolean {
+    switch (status) {
+        case "stopping":
+        case "starting":
+            return true;
+        default:
             return false;
     }
 }
@@ -139,6 +149,12 @@ export async function openServerStatusSocket(id: string): Promise<TypedSocket<Se
         // evil url injection vulnerability
         await openWS(`/server/${id}/status/follow`)
     );
+}
+
+export async function openAllServerStatusSocket(): Promise<TypedSocket<ServerStatus>> {
+    return new TypedSocket(
+        await openWS("/server/status/follow")
+    )
 }
 
 export async function openConsoleSocket(id: string): Promise<TypedSocket<ConsoleLine>> {

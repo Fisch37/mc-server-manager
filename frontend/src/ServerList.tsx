@@ -1,18 +1,40 @@
 import { ArrowsRotateRight, Play, Server as ServerIcon, ServerPlus, Stop } from "@gravity-ui/icons";
 import { useNavigate } from "react-router";
-import { getServerList, isStatusAlive, restartServer, startServer, stopServer, type Server } from "./api/server";
-import { useEffect, useState } from "react";
+import { getServerList, isStatusAlive, restartServer, type ServerStatus, startServer, stopServer, TypedSocket, type Server, openAllServerStatusSocket, type StatusValue, isStatusChanging } from "./api/server";
+import { useEffect, useRef, useState } from "react";
 import { Button, Modal } from "@heroui/react";
 import ServerCreator from "./ServerCreator";
+import { queue_alert } from "./App";
 
 const ServerList = () => {
     const navigate = useNavigate();
     const [servers, set_servers] = useState<Array<Server>>([]);
     const [is_creator_open, set_creator_open] = useState(false);
+    const [status_info, set_status_info] = useState<{ [server_id: string]: StatusValue }>({ })
+    const statusSocket = useRef<TypedSocket<ServerStatus>|null>(null);
     
     useEffect(() => {
         refresh_servers();
     }, []);
+    useEffect(() => {
+        openAllServerStatusSocket().then(value => {
+            statusSocket.current = value;
+            statusSocket.current.addOnMessage(status => {
+                set_status_info(prev => {
+                    let next = {...prev};
+                    next[status.server_id] = status.status;
+                    return next;
+                })
+            })
+        }).catch(e => {
+            queue_alert({
+                status: "warning",
+                title: "Failed to open status socket",
+                description: "Check the browser console for more"
+            })
+            console.error(e);
+        })
+    }, [])
 
     async function refresh_servers() {
         const serverList = await getServerList();
@@ -25,7 +47,7 @@ const ServerList = () => {
     }
 
     return (
-        <div>
+        <>
             <Modal>
                 <Button onClick={() => set_creator_open(true)}>
                     <ServerPlus className="inline" width={32} />
@@ -64,28 +86,38 @@ const ServerList = () => {
                                     <a onClick={() => navigate(serverPageUrl)}>{server.name}</a>
                                 </span>
                                 <span className="align-middle ml-5">
-                                    {isStatusAlive(server.status) && (
-                                        <span>
-                                        <button className="align-middle" onClick={() => stopServer(server.id)}>
-                                            <Stop width={24} className="align-middle" />
-                                        </button>
-                                        <button className="align-middle" onClick={() => restartServer(server.id)}>
-                                            <ArrowsRotateRight width={24} className="align-middle" />
-                                        </button>
-                                        </span>
-                                    ) }
-                                    {!isStatusAlive(server.status) && (
-                                        <button className="align-middle" onClick={() => startServer(server.id)}>
-                                            <Play width={24} className="align-middle" />
-                                        </button>
-                                    ) }
+                                    {(() => {
+                                        let status = status_info[server.id] || server.status;
+                                        if (isStatusChanging(status)) {
+                                            return (
+                                                <ArrowsRotateRight width={24} className="inline align-middle rotateSlowly" />
+                                            )
+                                        } else if(isStatusAlive(status)) {
+                                            return (
+                                                <span>
+                                                    <button className="align-middle" onClick={() => stopServer(server.id)}>
+                                                        <Stop width={24} className="align-middle" />
+                                                    </button>
+                                                    <button className="align-middle" onClick={() => restartServer(server.id)}>
+                                                        <ArrowsRotateRight width={24} className="align-middle" />
+                                                    </button>
+                                                </span>
+                                            );
+                                        } else {
+                                            return (
+                                                <button className="align-middle" onClick={() => startServer(server.id)}>
+                                                    <Play width={24} className="align-middle" />
+                                                </button>
+                                            )
+                                        }
+                                    })()}
                                 </span>
                             </div>
                         );
                     })
                 }
             </div>
-        </div>
+        </>
     );
 };
 

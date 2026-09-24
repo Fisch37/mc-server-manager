@@ -1,8 +1,10 @@
 package de.maria_writes_code.mcsm.backend.api.websockets;
 
-import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
+import java.util.UUID;
 import java.util.function.Consumer;
-import org.springframework.web.socket.TextMessage;
+import java.util.stream.Collectors;
 import org.springframework.web.socket.WebSocketSession;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -12,38 +14,47 @@ import de.maria_writes_code.mcsm.backend.api.websockets.abc.JsonPublisherSocket;
 import de.maria_writes_code.mcsm.backend.features.server.ActiveServer;
 import de.maria_writes_code.mcsm.backend.features.server.ServerStatus;
 
-public class ServerStatusSocket extends JsonPublisherSocket implements Consumer<ServerStatus> {
-    private final ActiveServer server;
+public class ServerStatusSocket extends JsonPublisherSocket {
+    private static long NEXT_ID = 1;
+    private final Collection<ActiveServer> servers;
+    @SuppressWarnings("unused")
+    private final Collection<Consumer<ServerStatus>> listeners;
     @SuppressWarnings("unused")
     private final Thread periodicUpdatesThread;
 
     public ServerStatusSocket(ActiveServer server) {
-        this.server = server;
-        server.getStatusObserver().subscribe(this);
+        this(List.of(server));
+    }
+    public ServerStatusSocket(Collection<ActiveServer> servers) {
+        this.servers = servers;
+        listeners = servers
+            .stream()
+            .map(server -> {
+                Consumer<ServerStatus> listener = status -> publish(server.getId(), status);
+                server.getStatusObserver().subscribe(listener);
+                return listener;
+            }).collect(Collectors.toList());
         periodicUpdatesThread = Thread.ofVirtual()
-            .name("ServerStatusSocket-" + server.getId())
+            .name("ServerStatusSocket-" + NEXT_ID++)
             .start(this::periodicUpdates);
     }
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         super.afterConnectionEstablished(session);
-        try {
-            session.sendMessage(new TextMessage(MAPPER.writeValueAsString(
-                new ServerExecutionEndpoints.ServerStatusObject(server)
-            )));
-        } catch (JsonProcessingException e) {
-            LOGGER.error("Failed to serialize server status object", e);
-        } catch (IOException e) {
-            LOGGER.error("I/O exception when sending server status object", e);
-        }
+        publishAll();
     }
 
-    @Override
-    public void accept(ServerStatus status) {
+    protected void publish(UUID serverId, ServerStatus status) {
         publishWithLogging(new ServerExecutionEndpoints.ServerStatusObject(
-            server.getId(), status
+            serverId, status
         ));
+    }
+
+    protected void publishAll() {
+        for (var server : servers) {
+            publish(server.getId(), server.getStatus());
+        }
     }
     
     private void publishWithLogging(Object o) {
@@ -63,7 +74,7 @@ public class ServerStatusSocket extends JsonPublisherSocket implements Consumer<
             } catch (InterruptedException e) {
                 break;
             }
-            publishWithLogging(new ServerExecutionEndpoints.ServerStatusObject(server));
+            publishAll();
         }
     }
 }

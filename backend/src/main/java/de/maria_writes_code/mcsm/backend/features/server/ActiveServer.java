@@ -124,7 +124,7 @@ public class ActiveServer {
      * @throws IOException Some I/O error occured while trying to stop the server
      */
     public void stop() throws IllegalStateException, IOException {
-        if (process != null) {
+        if (process != null && status.get().isAlive() && status.get() != ServerStatus.Stopping) {
             status.set(ServerStatus.Stopping);
             process.stop();
             status.set(Utils.isExitCodeOk(process.getExitValue()) ? ServerStatus.Stopped : ServerStatus.Crashed);

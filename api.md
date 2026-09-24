@@ -71,6 +71,19 @@ Response:
     - 404 Not Found if no server exists with that id
 
 ## Server Execution
+### GET /server/status
+Get the status for every server.
+
+Response:
+```json
+{
+    <server id>: <status>*
+}
+```
+
+### GET /server/status/follow
+Get a [server status socket](#server-status-socket) for all servers.
+
 ### GET /server/{id}/status
 Get the current server status.
 

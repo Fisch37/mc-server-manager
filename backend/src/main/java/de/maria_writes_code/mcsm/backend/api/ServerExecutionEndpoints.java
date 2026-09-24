@@ -4,7 +4,9 @@ import static de.maria_writes_code.mcsm.backend.api.EndpointUtils.NO_SERVER_EXIS
 import static de.maria_writes_code.mcsm.backend.api.EndpointUtils.performWSHandshake;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -32,6 +34,20 @@ import jakarta.servlet.http.HttpServletResponse;
 public class ServerExecutionEndpoints {
     @Autowired
     private ServerManager servers;
+
+    @GetMapping("status")
+    public Map<String, ServerStatus> getStatus() {
+        return servers.stream()
+            .collect(Collectors.toMap(
+                s -> s.getId().toString(),
+                s -> s.getStatus()
+            ));
+    }
+
+    @GetMapping("status/follow")
+    public void getStatusWS() {
+        performWSHandshake(new ServerStatusSocket(servers.stream().toList()));
+    }
 
     @GetMapping("{id}/status")
     public ServerStatusObject getStatus(@PathVariable UUID id) {

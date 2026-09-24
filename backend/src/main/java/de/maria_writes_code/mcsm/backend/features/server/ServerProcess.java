@@ -63,15 +63,6 @@ public class ServerProcess {
         return Collections.unmodifiableList(consoleHistory);
     }
 
-    @Deprecated
-    public ServerStatus getStatus() {
-        try {
-            return process.exitValue() == 0 ? ServerStatus.Stopped : ServerStatus.Crashed;
-        } catch (IllegalStateException ignored) {
-            return ServerStatus.Started;
-        }
-    }
-
     /**
      * @return Gets the exit status of the process
      * @throws IllegalStateException if the process is still running.
