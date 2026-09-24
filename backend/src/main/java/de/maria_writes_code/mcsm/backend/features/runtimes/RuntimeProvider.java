@@ -1,11 +1,16 @@
 package de.maria_writes_code.mcsm.backend.features.runtimes;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
-import org.apache.commons.lang3.NotImplementedException;
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +21,10 @@ import de.maria_writes_code.mcsm.backend.AppConfig;
 import static de.maria_writes_code.mcsm.backend.App.LOGGER;
 
 @Service @Scope("singleton")
+@NullMarked
 public class RuntimeProvider implements InitializingBean {
+    private static final Map<Integer, Object> FETCH_LOCKS = new ConcurrentHashMap<>();
+
     @Autowired
     AppConfig config;
 
@@ -65,7 +73,40 @@ public class RuntimeProvider implements InitializingBean {
         return entry == null ? null : entry.getValue();
     }
 
-    public void fetchRuntime(int javaVersion) {
-        throw new NotImplementedException();
+    public JavaRuntime ensureRuntimeSupporting(int javaVersion, Consumer<String> updateReceiver) throws IOException {
+        return ensureRuntime(javaVersion, v -> this.getRuntimeSupporting(v), updateReceiver);
+    }
+
+    public JavaRuntime ensureRuntime(int javaVersion, Consumer<String> updateReceiver) throws IOException {
+        return ensureRuntime(javaVersion, v -> this.getRuntime(v), updateReceiver);
+    }
+
+    private JavaRuntime ensureRuntime(
+        int javaVersion,
+        Function<Integer, JavaRuntime> getter,
+        Consumer<String> updateReceiver
+    ) throws IOException {
+        // TODO: This may still be vulnerable to race conditions
+        synchronized (runtimes) {
+            var res = getter.apply(javaVersion);
+            if (res != null)
+                return res;
+        }
+        Object lock;
+        synchronized (FETCH_LOCKS) {
+            lock = new Object();
+            var existingLock = FETCH_LOCKS.putIfAbsent(javaVersion, lock);
+            if (existingLock != null)
+                lock = existingLock;
+        }
+        AdoptiumRuntime res;
+        synchronized (lock) {
+            res = runtimes.get(javaVersion);
+            if (res != null)
+                return res;
+            res = new AdoptiumRuntime(javaVersion, config.getRuntimeLocation(), updateReceiver);
+            runtimes.put(javaVersion, res);
+        }
+        return res;
     }
 }

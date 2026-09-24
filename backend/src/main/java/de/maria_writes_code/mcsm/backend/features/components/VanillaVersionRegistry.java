@@ -127,6 +127,7 @@ public class VanillaVersionRegistry implements InitializingBean, VersionProvider
         if (!path.toFile().isFile()) {
             fetchExecutable(details, updateReceiver);
         }
+        runtimeProvider.ensureRuntimeSupporting(details.javaVersion(), updateReceiver);
         return path;
     }
 
