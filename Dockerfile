@@ -33,7 +33,8 @@ FROM ubuntu AS runtime
 
 RUN sed -i 's/^Components: main$/& multiverse/' /etc/apt/sources.list.d/ubuntu.sources
 RUN dpkg --add-architecture i386 && apt-get update
-RUN apt-get install -y --no-install-recommends nginx openjdk-25-jre-headless
+# tzdata allows timezone data to be received from the environment
+RUN apt-get install -y --no-install-recommends tzdata nginx openjdk-25-jre-headless
 RUN echo steam steam/question select "I AGREE" | debconf-set-selections \
   && echo steam steam/license note '' | debconf-set-selections \
   && apt-get install -y --no-install-recommends steamcmd
