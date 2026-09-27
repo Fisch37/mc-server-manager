@@ -1,11 +1,16 @@
 package de.maria_writes_code.mcsm.backend.utils;
 
+import java.nio.file.Path;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.Objects;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -112,6 +117,29 @@ public abstract sealed class Utils permits Utils.Seal {
             default:
                 return false;
         }
+    }
+
+    public static boolean escapesRoot(Path path) {
+        if (path.isAbsolute()) {
+            return true;
+        }
+
+        var normalized = path.normalize();
+        // TODO: Doing string comparison is not a tidy way to do this
+        return (
+            normalized.getNameCount() > 0
+            && "..".equals(normalized.getName(0).toString())
+        );
+    }
+
+    public static <T> Stream<T> toStream(Iterator<T> iterator) {
+        return StreamSupport.stream(
+            Spliterators.spliteratorUnknownSize(
+                iterator,
+                Spliterator.ORDERED
+            ),
+            false
+        );
     }
     
     private static final class Seal extends Utils { }

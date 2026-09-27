@@ -203,13 +203,7 @@ public record ServerTemplateDefinition(
     }
 
     private static void checkDoesNotEscapeRoot(Path path, String fieldName) {
-        if (path.isAbsolute()) {
-            throw new IllegalArgumentException("%s must be relative and stay within the server root".formatted(fieldName));
-        }
-
-        var normalized = path.normalize();
-        // TODO: Doing string comparison is not a tidy way to do this
-        if (normalized.getNameCount() > 0 && "..".equals(normalized.getName(0).toString())) {
+        if (Utils.escapesRoot(path)) {
             throw new IllegalArgumentException("%s must not escape the server root".formatted(fieldName));
         }
     }

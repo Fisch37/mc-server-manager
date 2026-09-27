@@ -160,6 +160,48 @@ Response:
 
 _Note: In a previous iteration this was `/logs/{log_name}`, but this had to be discarded, due to the fact that Spring simply does not allow escaped slashes (i.e. `%2F`) in path variables._
 
+## Server Files
+### GET /server/{id}/files?path={file_path}
+Get information about a file.
+
+- Response:
+    - a [file-like summary object](#file-like-summary-objects)
+    - 403 Forbidden if the path is inaccessible
+
+### GET /server/{id}/files/contents?path={file_path}
+Get the file contents.
+
+- Response:
+    - the raw contents of the file if the target is a file or, in case of a  symlink, the raw contents of the target file
+    - 403 Forbidden if the path is inaccessible or the file is not readable
+    - 409 Conflict if the file is a directory
+
+### GET /server/{id}/files/list?path={file_path}
+Get the files in a directory.
+
+- Response:
+    - an array of [file-like summary objects](#file-like-summary-objects)
+    - 403 Forbidden if the path is inaccessible or the directory is not readable
+    - 409 Conflict if the file is not a directory or symlink to a directory
+
+### PUT /server/{id}/files?path={file_path}
+Write to a file (creating it, if it doesn't exist).
+
+- Request Body: the raw contents of the file
+
+- Response:
+    - 204 No Content on a success
+    - 403 Forbidden if the file is not writable
+    - 409 Conflict if the target is not a file (including if it is a symlink to a file)
+
+### DELETE /server/{id}/files?path={file_path}
+Delete the given file, symlink, or directory.
+
+- Response:
+    - 204 No Content on a success
+    - 403 Forbidden if the file is not writable
+    - 409 Conflict if the target does not exist
+
 ## Templates
 ### GET /templates
 Get a list of templates.
@@ -335,5 +377,52 @@ Some opaque string.
 {
     "id": <version string>,
     "channel": <channel string>
+}
+```
+
+## File-like Summary Objects
+### File Summary Object
+```json
+{
+    "type": "file",
+    "path": <string>,
+    "size": <integer>,
+    "created_at": <ISO-8601 date time with timezone>,
+    "last_modified": <ISO-8601 date time with timezone>,
+    "permissions": <file permissions object>
+}
+```
+
+### Directory Summary Object
+```json
+{
+    "type": "directory",
+    "path": <string>,
+    "created_at": <ISO-8601 date time with timezone>,
+    "last_modified": <ISO-8601 date time with timezone>,
+    "permissions": <file permissions object>
+}
+```
+
+### Symlink Summary Object
+```json
+{
+    "type": "symlink",
+    "path": <string>,
+    "created_at": <ISO-8601 date time with timezone>,
+    "last_modified": <ISO-8601 date time with timezone>,
+    "permissions": <file permissions object>,
+    // target may be undefined if it is outside the readable area
+    "target"?: <file summary object|directory summary object|symlink summary object>
+}
+```
+
+### File Permissions Object
+```json
+{
+    "read": <boolean>,
+    "write": <boolean>,
+    // for directories this means the directory can be viewed
+    "execute": <boolean>
 }
 ```
