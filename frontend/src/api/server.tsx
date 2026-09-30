@@ -7,11 +7,13 @@ export type Server = {
     id: string,
     name: string,
     status: StatusValue,
-    autostart: boolean
+    autostart: boolean,
+    crash_recovery: boolean
 };
 export type ChangeServer = {
     name?: string,
-    autostart?: boolean
+    autostart?: boolean,
+    crash_recovery?: boolean
 };
 
 export type ServerStatus = {

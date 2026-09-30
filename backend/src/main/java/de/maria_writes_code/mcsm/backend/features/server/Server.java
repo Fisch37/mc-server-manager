@@ -45,6 +45,9 @@ public class Server {
     @Column @ColumnDefault("false")
     private boolean autostart;
 
+    @Column @ColumnDefault("false")
+    private boolean crashRecovery;
+
     public Server() {
         id = UUID.randomUUID();
     }
@@ -124,5 +127,12 @@ public class Server {
     }
     public void setAutostart(boolean autostart) {
         this.autostart = autostart;
+    }
+
+    public boolean hasCrashRecovery() {
+        return crashRecovery;
+    }
+    public void setCrashRecovery(boolean crashRecovery) {
+        this.crashRecovery = crashRecovery;
     }
 }

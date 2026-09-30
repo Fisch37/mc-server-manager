@@ -235,13 +235,23 @@ public class ServerManagementEndpoints {
         }
     }
 
-    public record ServerObject(UUID id, String name, ServerStatus status, boolean autostart) {
+    public record ServerObject(
+        UUID id, String name,
+        ServerStatus status,
+        boolean autostart,
+        boolean crash_recovery
+    ) {
         public ServerObject(ActiveServer server) {
+            this(server.getServer(), server.getStatus());
+        }
+
+        public ServerObject(Server server, ServerStatus status) {
             this(
                 server.getId(),
-                server.getServer().getName(),
-                server.getStatus(),
-                server.getServer().isAutostart()
+                server.getName(),
+                status,
+                server.isAutostart(),
+                server.hasCrashRecovery()
             );
         }
     }
@@ -265,11 +275,13 @@ public class ServerManagementEndpoints {
 
     public record ServerChangeObject(
         @Nullable String name,
-        @Nullable Boolean autostart
+        @Nullable Boolean autostart,
+        @Nullable Boolean crash_recovery
     ) {
         public Server apply(Server server) {
             if (name != null) server.setName(name);
             if (autostart != null) server.setAutostart(autostart);
+            if (crash_recovery != null) server.setCrashRecovery(crash_recovery);
             return server;
         }
     }

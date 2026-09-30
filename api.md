@@ -246,7 +246,8 @@ Some opaque string.
     "id": <uuid string>,
     "name": <string>,
     "status": "stopping"|"stopped"|"crashed"|"starting"|"started",
-    "autostart": <boolean>
+    "autostart": <boolean>,
+    "crash_recovery": <boolean>
 }
 ```
 
@@ -268,7 +269,8 @@ Some opaque string.
 ```json
 {
     "name"?: <string>,
-    "autostart"?: <boolean>
+    "autostart"?: <boolean>,
+    "crash_recovery"?: <boolean>
 }
 ```
 

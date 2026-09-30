@@ -8,6 +8,7 @@ import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -33,6 +34,8 @@ import de.maria_writes_code.mcsm.backend.utils.Utils;
 
 @NullMarked
 public class ActiveServer {
+    protected static final Duration CRASH_REVIVE_COOLDOWN = Duration.ofSeconds(2);
+
     private final Context context;
 
     private final UUID id;
@@ -110,7 +113,14 @@ public class ActiveServer {
             getLocation(),
             getTemplate(),
             server.getProperties(),
-            exitValue -> status.set(Utils.isExitCodeOk(exitValue) ? ServerStatus.Stopped : ServerStatus.Crashed)
+            exitValue -> {
+                boolean stoppedUnexpectedly = status.get() != ServerStatus.Stopping;
+                status.set(Utils.isExitCodeOk(exitValue) ? ServerStatus.Stopped : ServerStatus.Crashed);
+                // Still checking for crash state because servers may stop themselves properly (e.g. /stop in Minecraft)
+                if (stoppedUnexpectedly && status.get() == ServerStatus.Crashed) {
+                    this.resolveCrash();
+                }
+            }
         );
         status.set(ServerStatus.Starting);
         
@@ -189,6 +199,23 @@ public class ActiveServer {
             }
         }).reversed());
         return outputList;
+    }
+
+    private void resolveCrash() {
+        if (!server.hasCrashRecovery())
+            return;
+        Thread.ofVirtual().start(() -> {
+            try {
+                Thread.sleep(CRASH_REVIVE_COOLDOWN);
+            } catch (InterruptedException e) {
+                LOGGER.warn("Server Revive was interrupted. Crash detection will fail", e);
+            }
+            try {
+                start();
+            } catch (IOException e) {
+                LOGGER.error("Server Revive failed from I/O error", e);
+            }
+        });
     }
 
     @Component

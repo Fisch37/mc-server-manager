@@ -408,6 +408,7 @@ const ServerSettings = ({server_id, server_info, on_refresh}: ServerSettingsPara
     const navigate = useNavigate();
     const [new_name, set_new_name] = useState("");
     const [autostart, set_autostart] = useState(server_info?.autostart || false);
+    const [crash_recovery, set_crash_recovery] = useState(server_info?.crash_recovery || false);
     const [configuration, set_configuration] = useState<Array<ServerConfiguration>>([ ]);
     const [config_changes, set_config_changes] = useState<{[id: string]: string}>({ });
     useEffect(() => {
@@ -420,6 +421,7 @@ const ServerSettings = ({server_id, server_info, on_refresh}: ServerSettingsPara
         let update: ChangeServer = { };
         if (new_name) update.name = new_name;
         if (autostart !== server_info?.autostart) update.autostart = autostart;
+        if (crash_recovery !== server_info?.crash_recovery) update.crash_recovery = crash_recovery;
         await changeServerAPI(server_id, update);
         on_refresh();
     }
@@ -456,6 +458,15 @@ const ServerSettings = ({server_id, server_info, on_refresh}: ServerSettingsPara
                         Autostart
                     </Switch.Content>
                     <Description>If set, this server will automatically start with MCSM</Description>
+                </Switch>
+                <Switch value={switchValue(crash_recovery)} onChange={set_crash_recovery}>
+                    <Switch.Content>
+                        <Switch.Control>
+                            <Switch.Thumb />
+                        </Switch.Control>
+                        Automatic Crash Recovery
+                    </Switch.Content>
+                    <Description>If set, MCSM will attempt to revive the server when it crashes</Description>
                 </Switch>
                 <Button className="bg-blue-500 ml-2" type="submit">Apply</Button>
             </form>
