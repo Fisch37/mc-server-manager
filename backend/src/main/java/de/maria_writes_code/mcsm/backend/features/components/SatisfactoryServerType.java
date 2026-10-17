@@ -6,9 +6,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
+import java.util.Optional;
 import java.util.function.Consumer;
 import org.apache.commons.lang3.function.TriFunction;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,15 +21,21 @@ import de.maria_writes_code.mcsm.backend.features.components.configuration.Serve
 import de.maria_writes_code.mcsm.backend.features.components.execution_helpers.NativeExecutionHelper;
 import de.maria_writes_code.mcsm.backend.features.components.versions.NoVersions;
 import de.maria_writes_code.mcsm.backend.features.components.versions.VersionProvider;
-import de.maria_writes_code.mcsm.backend.features.server.ServerProcess;
-import de.maria_writes_code.mcsm.backend.utils.Utils;
+import de.maria_writes_code.mcsm.backend.features.updates.ServerUpdater;
+import de.maria_writes_code.mcsm.backend.features.updates.SteamCmdUpdater;
 
 @Service
-public class SatisfactoryServerType implements ServerType<NoVersions> {
+public class SatisfactoryServerType implements ServerType<NoVersions>, InitializingBean {
     private static final String SATISFACTORY_SERVER_ID = "1690800";
 
     @Autowired
     AppConfig config;
+    SteamCmdUpdater updater;
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        updater = new SteamCmdUpdater(SATISFACTORY_SERVER_ID, config);
+    }
 
     @Override
     public ComponentIdentifier getIdentifier() {
@@ -47,37 +54,8 @@ public class SatisfactoryServerType implements ServerType<NoVersions> {
     }
 
     @Override
-    // TODO: May be sensible to expand the throws clause here.
     public void fetchExecutable(NoVersions versions, Path destination, Consumer<String> updateReceiver) throws IOException {
-        // Satisfactory downloads are done by SteamCMD at runtime.
-        // steamcmd +force_install_dir ~/SatisfactoryDedicatedServer +login anonymous +app_update 1690800 validate +quit
-        var process = new ServerProcess(
-            new ProcessBuilder(List.of(
-                config.getSteamCmd(),
-                "+force_install_dir",
-                // absolute path is required for SteamCMD to behave safely
-                destination.toAbsolutePath().toString(),
-                "+login",
-                "anonymous",
-                "+app_update",
-                SATISFACTORY_SERVER_ID,
-                "validate",
-                "+quit"
-            )).start(),
-            code -> { }
-        );
-        process.getConsoleEvent().subscribe(line -> updateReceiver.accept("Satisfactory: " + line));
-        
-        try {
-            if (!Utils.isExitCodeOk(process.await())) {
-                updateReceiver.accept("Satisfactory: Failed to install server");
-                throw new IOException("Server creation completed abnormally");
-            }
-        } catch (ExecutionException e) {
-            throw new IOException(e);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        updater.update(destination, versions, updateReceiver);
     }
 
     private final static String 
@@ -147,5 +125,10 @@ public class SatisfactoryServerType implements ServerType<NoVersions> {
     @Override
     public ServerConfigurationHelper getConfigurationHelper() {
         return new SatisfactoryConfigurationHelper();
+    }
+
+    @Override
+    public Optional<ServerUpdater<NoVersions>> getUpdater() {
+        return Optional.of(updater);
     }
 }

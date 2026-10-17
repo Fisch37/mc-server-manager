@@ -1,6 +1,6 @@
 <mxfile host="Electron">
   <diagram name="Page-1" id="W9Kmmc40F6Gz2fNp_sXg">
-    <mxGraphModel dx="2650" dy="703" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="2899" dy="879" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -366,7 +366,12 @@
           <mxGeometry height="26" width="160" y="88" as="geometry" />
         </mxCell>
         <mxCell id="f5o9yaBEOrAavlcU34co-5" edge="1" parent="1" source="sr2WvnKchhpAzCbEQ8Q2-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;" target="f5o9yaBEOrAavlcU34co-1">
-          <mxGeometry relative="1" as="geometry" />
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="301.22" y="1420" />
+              <mxPoint x="-15" y="1420" />
+            </Array>
+          </mxGeometry>
         </mxCell>
         <mxCell id="f5o9yaBEOrAavlcU34co-6" connectable="0" parent="f5o9yaBEOrAavlcU34co-5" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="1" vertex="1">
           <mxGeometry relative="1" x="0.9296" y="2" as="geometry">
@@ -391,11 +396,27 @@
             <mxPoint x="-4" y="-16" as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="sr2WvnKchhpAzCbEQ8Q2-6" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" value="&lt;div&gt;&lt;span style=&quot;font-weight: normal;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;interface&amp;gt;&amp;gt;&lt;/i&gt;&lt;/span&gt;&lt;/div&gt;ServerType&amp;lt;T extends VersionCombo&amp;gt;" vertex="1">
-          <mxGeometry height="150" width="562.5" x="20" y="1170" as="geometry" />
+        <mxCell id="yokBsk5JZkMO3PdBSrr5-1" edge="1" parent="1" source="sr2WvnKchhpAzCbEQ8Q2-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=none;endFill=0;" target="yokBsk5JZkMO3PdBSrr5-2">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="301.33" y="1420" />
+              <mxPoint x="220" y="1420" />
+              <mxPoint x="220" y="1600" />
+              <mxPoint x="-20" y="1600" />
+            </Array>
+            <mxPoint x="-20" y="1660" as="targetPoint" />
+          </mxGeometry>
         </mxCell>
-        <mxCell id="sr2WvnKchhpAzCbEQ8Q2-9" parent="sr2WvnKchhpAzCbEQ8Q2-6" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="&lt;div&gt;+ getIdentifier(): VariantIdentifier&lt;/div&gt;+ getVersionProviders(): Collection&amp;lt;VersionProvider&amp;gt;&lt;div&gt;+ fetchExecutable(versions: T, destination: Path)&lt;/div&gt;&lt;div&gt;+ getExecutionHelper(): ServerExecutionHelper&lt;/div&gt;&lt;div&gt;+ getAvailableProperties(): List&amp;lt;ConfigurationDescriptor&amp;lt;?&amp;gt;&amp;gt;&lt;/div&gt;&lt;div&gt;+ fetchVersionProperties(versions: T): Map&amp;lt;String, String&amp;gt;&lt;/div&gt;&lt;div&gt;+ fetchVersionProperteisGeneric(versions: VersionCombo): Map&amp;lt;String, String&amp;gt;&lt;/div&gt;" vertex="1">
-          <mxGeometry height="110" width="562.5" y="40" as="geometry" />
+        <mxCell id="yokBsk5JZkMO3PdBSrr5-6" connectable="0" parent="yokBsk5JZkMO3PdBSrr5-1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="0..1" vertex="1">
+          <mxGeometry relative="1" x="0.937" y="2" as="geometry">
+            <mxPoint x="18" y="6" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="sr2WvnKchhpAzCbEQ8Q2-6" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" value="&lt;div&gt;&lt;span style=&quot;font-weight: normal;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;interface&amp;gt;&amp;gt;&lt;/i&gt;&lt;/span&gt;&lt;/div&gt;ServerType&amp;lt;T extends VersionCombo&amp;gt;" vertex="1">
+          <mxGeometry height="170" width="562.5" x="20" y="1170" as="geometry" />
+        </mxCell>
+        <mxCell id="sr2WvnKchhpAzCbEQ8Q2-9" parent="sr2WvnKchhpAzCbEQ8Q2-6" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="&lt;div&gt;+ getIdentifier(): VariantIdentifier&lt;/div&gt;+ getVersionProviders(): Collection&amp;lt;VersionProvider&amp;gt;&lt;div&gt;+ fetchExecutable(versions: T, destination: Path)&lt;/div&gt;&lt;div&gt;+ getExecutionHelper(): ServerExecutionHelper&lt;/div&gt;&lt;div&gt;+ getAvailableProperties(): List&amp;lt;ConfigurationDescriptor&amp;lt;?&amp;gt;&amp;gt;&lt;/div&gt;&lt;div&gt;+ fetchVersionProperties(versions: T): Map&amp;lt;String, String&amp;gt;&lt;/div&gt;&lt;div&gt;+ fetchVersionProperteisGeneric(versions: VersionCombo): Map&amp;lt;String, String&amp;gt;&lt;/div&gt;&lt;div&gt;+ getUpdater(): Optional&amp;lt;ServerUpdater&amp;gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="130" width="562.5" y="40" as="geometry" />
         </mxCell>
         <mxCell id="sr2WvnKchhpAzCbEQ8Q2-10" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" value="&lt;div&gt;&lt;span style=&quot;font-weight: normal;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;interface&amp;gt;&amp;gt;&lt;/i&gt;&lt;/span&gt;&lt;/div&gt;VersionCombo" vertex="1">
           <mxGeometry height="70" width="380" x="240" y="1504" as="geometry" />
@@ -622,6 +643,12 @@
         </mxCell>
         <mxCell id="3PxWdhG80uX6n8ygFFnl-37" connectable="0" parent="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="bind T: Double" vertex="1">
           <mxGeometry x="-900" y="1504" as="geometry" />
+        </mxCell>
+        <mxCell id="yokBsk5JZkMO3PdBSrr5-2" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" value="&lt;div&gt;&lt;span style=&quot;font-weight: normal;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;interface&amp;gt;&amp;gt;&lt;/i&gt;&lt;/span&gt;&lt;/div&gt;ServerUpdater&amp;lt;T extends VersionCombo&amp;gt;" vertex="1">
+          <mxGeometry height="90" width="260" x="-150" y="1654" as="geometry" />
+        </mxCell>
+        <mxCell id="yokBsk5JZkMO3PdBSrr5-5" parent="yokBsk5JZkMO3PdBSrr5-2" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="+ checkUpdateAvailable(): boolean&lt;div&gt;+ update(destination: Path, versions: T, receiver: Consumer&amp;lt;String&amp;gt;)&lt;/div&gt;" vertex="1">
+          <mxGeometry height="50" width="260" y="40" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>

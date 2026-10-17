@@ -1,11 +1,8 @@
 package de.maria_writes_code.mcsm.backend.api;
 
-import static de.maria_writes_code.mcsm.backend.App.LOGGER;
 import static de.maria_writes_code.mcsm.backend.api.EndpointUtils.NO_SERVER_EXISTS;
 
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -28,10 +25,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
-import org.springframework.web.socket.CloseStatus;
-
-import de.maria_writes_code.mcsm.backend.api.websockets.ListenerSocket;
-import de.maria_writes_code.mcsm.backend.api.websockets.abc.PublisherSocket.IOExceptionGroup;
 import de.maria_writes_code.mcsm.backend.features.components.ComponentRegistry;
 import de.maria_writes_code.mcsm.backend.features.components.VersionCombo;
 import de.maria_writes_code.mcsm.backend.features.components.configuration.ConfigurationDescriptor;
@@ -67,28 +60,7 @@ public class ServerManagementEndpoints {
     }
     @PostMapping(value = "new/follow", produces = "text/plain") 
     public String createServerFollow(@RequestBody ServerBuilderObject builderParams) {
-        var ws = new ListenerSocket();
-        new Thread(() -> {
-            try {
-                createServer(builderParams, ws);
-                ws.accept(null);
-            } catch (Exception e) {
-                try (var stringWriter = new StringWriter(); var printWriter = new PrintWriter(stringWriter)) {
-                    e.printStackTrace(printWriter);
-                    ws.accept(stringWriter.toString());
-                } catch (IOException ioe) {
-                    ws.accept("I/O error occurred trying to print stack trace of another error. Error is " + e.getMessage());
-                    ioe.printStackTrace();
-                }
-                // close socket
-                try {
-                    ws.close(CloseStatus.SERVER_ERROR);
-                } catch (IOExceptionGroup e2) {
-                    LOGGER.error("One or more sockets failed to close at server error", e2);
-                }
-            }
-        }).start();
-        return gateway.register(ws);
+        return EndpointUtils.startTaskWithListeningSocket(gateway, ws -> createServer(builderParams, ws));
     }
     private ServerObject createServer(
         ServerBuilderObject builderParams,
@@ -239,19 +211,32 @@ public class ServerManagementEndpoints {
         UUID id, String name,
         ServerStatus status,
         boolean autostart,
-        boolean crash_recovery
+        boolean crash_recovery,
+        boolean supports_updating
     ) {
         public ServerObject(ActiveServer server) {
-            this(server.getServer(), server.getStatus());
+            this(
+                server.getServer(),
+                server.getStatus(),
+                server.getTemplate()
+                    .getServerType()
+                    .getUpdater()
+                    .isPresent()
+            );
         }
 
-        public ServerObject(Server server, ServerStatus status) {
+        public ServerObject(
+            Server server,
+            ServerStatus status,
+            boolean supports_updating
+        ) {
             this(
                 server.getId(),
                 server.getName(),
                 status,
                 server.isAutostart(),
-                server.hasCrashRecovery()
+                server.hasCrashRecovery(),
+                supports_updating
             );
         }
     }

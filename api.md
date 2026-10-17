@@ -160,6 +160,23 @@ Response:
 
 _Note: In a previous iteration this was `/logs/{log_name}`, but this had to be discarded, due to the fact that Spring simply does not allow escaped slashes (i.e. `%2F`) in path variables._
 
+## Server Update
+### GET /server/{id}/updates
+Check whether there is an update for this server.
+
+- Response:
+    - a json boolean
+    - 410 Gone if updating is not available for this server
+
+### PUT /server/{id}/updates/start
+Start an update.
+
+Request Body: a [version combo object](#version-combo-object) or nothing to update to the most recent version.
+
+- Response:
+    - A plain-text [gateway token](#gateway-token) to a [creation socket](#creation-socket)
+    - 410 Gone if updating is not available for this server
+
 ## Server Files
 ### GET /server/{id}/files?path={file_path}
 Get information about a file.
@@ -247,7 +264,15 @@ Some opaque string.
     "name": <string>,
     "status": "stopping"|"stopped"|"crashed"|"starting"|"started",
     "autostart": <boolean>,
-    "crash_recovery": <boolean>
+    "crash_recovery": <boolean>,
+    "supports_updating": <boolean>
+}
+```
+
+### Version Combo Object
+```json
+{
+    <version source identifier string>: <version string>
 }
 ```
 
@@ -256,9 +281,7 @@ Some opaque string.
 {
     "name": <string>,
     "template": <template id string>,
-    "versions": {
-        <version source identifier string>: <version string>
-    },
+    "versions": <version combo object>,
     "properties": {
         <key string>: <value string>
     }

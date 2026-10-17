@@ -5,6 +5,7 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 import de.maria_writes_code.mcsm.backend.features.components.configuration.ConfigurationDescriptor;
@@ -12,6 +13,7 @@ import de.maria_writes_code.mcsm.backend.features.components.configuration.Serve
 import de.maria_writes_code.mcsm.backend.features.components.execution_helpers.ServerExecutionHelper;
 import de.maria_writes_code.mcsm.backend.features.components.versions.VersionProvider;
 import de.maria_writes_code.mcsm.backend.features.runtimes.NoSuchRuntimeException;
+import de.maria_writes_code.mcsm.backend.features.updates.ServerUpdater;
 
 public interface ServerType<T extends VersionCombo> {
     ComponentIdentifier getIdentifier();
@@ -50,6 +52,9 @@ public interface ServerType<T extends VersionCombo> {
     
     ServerExecutionHelper getExecutionHelper();
     ServerConfigurationHelper getConfigurationHelper();
+    default Optional<ServerUpdater<T>> getUpdater() {
+        return Optional.empty();
+    }
     List<ConfigurationDescriptor<?>> getAvailableProperties();
 
     Map<String, String> fetchVersionProperties(T versions) throws IOException;

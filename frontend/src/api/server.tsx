@@ -8,7 +8,8 @@ export type Server = {
     name: string,
     status: StatusValue,
     autostart: boolean,
-    crash_recovery: boolean
+    crash_recovery: boolean,
+    supports_updating: boolean
 };
 export type ChangeServer = {
     name?: string,
@@ -42,6 +43,8 @@ export type ServerConfigurationChange = {
     [config_id: string]: string
 }
 
+export type CreationSocket = TypedSocket<WSLine|WSBacklog>;
+
 export function isStatusAlive(status: StatusValue): boolean {
     switch (status) {
         case "stopping":
@@ -64,10 +67,11 @@ export function isStatusChanging(status: StatusValue): boolean {
     }
 }
 
+type VersionComboObject = { [source_id: string]: string };
 type CreateServerArgs = {
     name: string,
     template: string,
-    versions: { [source_id: string]: string },
+    versions: VersionComboObject,
     properties: { [key: string]: string }
 };
 export async function createServer(args: CreateServerArgs) {
@@ -78,7 +82,7 @@ export async function createServer(args: CreateServerArgs) {
     )
 }
 
-export async function createServerWithSocket(args: CreateServerArgs): Promise<TypedSocket<WSLine|WSBacklog>> {
+export async function createServerWithSocket(args: CreateServerArgs): Promise<CreationSocket> {
     let token = await fetchApi(
         `/server/new/follow`,
         "POST",
@@ -126,6 +130,33 @@ export async function getConfiguration(id: string): Promise<Array<ServerConfigur
 
 export async function changeConfiguration(id: string, changes: ServerConfigurationChange) {
     await fetchApi(`/server/${id}/configuration`, "PATCH", JSON.stringify(changes))
+}
+
+export async function checkForUpdates(id: string): Promise<boolean|undefined> {
+    try {
+        return await fetchApi(`/server/${id}/updates`);
+    } catch (e: unknown) {
+        if (
+            e instanceof Object
+            && "type" in e
+            && e.type == "api_error"
+            && "response_code" in e
+            && e.response_code === 410
+        ) {
+            return undefined;
+        } else {
+            throw e;
+        }
+    }
+}
+
+export async function startUpdate(id: string, versions: VersionComboObject): Promise<CreationSocket> {
+    let token = await fetchApi(
+        `/server/${id}/updates/start`,
+        "PUT",
+        JSON.stringify(versions)
+    );
+    return new TypedSocket(getGatewaySocket(token));
 }
 
 export class TypedSocket<Packet> {

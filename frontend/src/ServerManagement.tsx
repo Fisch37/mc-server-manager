@@ -1,4 +1,4 @@
-import { Button, Chip, Description, Input, ListBox, Select, Switch, Tabs, type AlertVariants } from "@heroui/react";
+import { Button, Chip, Description, Input, ListBox, Modal, Select, Switch, Tabs, type AlertVariants } from "@heroui/react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import {
@@ -7,7 +7,10 @@ import {
     startServer as startServerAPI, stopServer as stopServerAPI, openServerStatusSocket,
     openConsoleSocketSync,
     getConfiguration,
-    changeConfiguration as changeConfigurationAPI
+    changeConfiguration as changeConfigurationAPI,
+    checkForUpdates,
+    startUpdate,
+    type CreationSocket
 } from "./api/server";
 import type { ChangeServer, ConsoleBacklog, ConsoleLine, Server, ServerConfiguration, StatusValue, TypedSocket } from "./api/server";
 import { getLogContent, getLogFiles } from "./api/log";
@@ -15,6 +18,8 @@ import { alertApiError, switchValue } from "./utils";
 import type { AlertInfo } from "./AlertQueue";
 import type { ApiError } from "./api/shared";
 import ConfigurationEditor from "./ConfigurationEditor";
+import ProcessLogging from "./ProcessLogging";
+import { queue_alert } from "./App";
 
 const WS_CLOSING_STATES: Array<number> = [WebSocket.CLOSING, WebSocket.CLOSED];
 
@@ -25,12 +30,21 @@ type AlertInfoEdits = {
     elements?: Array<React.JSX.Element>
 };
 
+const DEFAULT_ALERT_INFO: AlertInfo = {
+    status: "warning",
+    title: "Api Error",
+    description: "Received an unknown api error"
+}
 function alertApiErrorImproved(
     e: any,
-    preset: AlertInfo,
-    handlers: {[response_code: number]: () => AlertInfoEdits},
-    other: (e: ApiError) => AlertInfoEdits,
-    unknown: () => AlertInfoEdits
+    preset: AlertInfo = DEFAULT_ALERT_INFO,
+    handlers: {[response_code: number]: () => AlertInfoEdits} = {},
+    other: (e: ApiError) => AlertInfoEdits = error => ({
+        description: `Unexpected status code: ${error}`
+    }),
+    unknown: () => AlertInfoEdits = () => ({
+        description: "Unknown error occurred. Please check the log"
+    })
 ) {
     let handlers_wrapped = {};
     for (let key in handlers) {
@@ -411,11 +425,26 @@ const ServerSettings = ({server_id, server_info, on_refresh}: ServerSettingsPara
     const [crash_recovery, set_crash_recovery] = useState(server_info?.crash_recovery || false);
     const [configuration, set_configuration] = useState<Array<ServerConfiguration>>([ ]);
     const [config_changes, set_config_changes] = useState<{[id: string]: string}>({ });
+    const [is_update_available, set_update_available] = useState(false);
+    const [update_process, set_update_process] = useState<CreationSocket|null>(null);
+
     useEffect(() => {
         getConfiguration(server_id)
             .then(set_configuration)
             .catch(console.error)
     }, []);
+    useEffect(() => {
+        console.log("Hello!");
+        if (server_info !== null) {
+            set_autostart(server_info.autostart);
+            set_crash_recovery(server_info.crash_recovery);
+        }
+        if (server_info?.supports_updating) {
+            checkForUpdates(server_id)
+                .then(set_update_available)
+                .catch(alertApiErrorImproved)
+        }
+    }, [server_info]);
 
     async function changeServer() {
         let update: ChangeServer = { };
@@ -435,8 +464,42 @@ const ServerSettings = ({server_id, server_info, on_refresh}: ServerSettingsPara
         navigate("/");
     }
 
+    async function performUpdate() {
+        // TODO: Add version selection
+        try {
+            set_update_process(await startUpdate(server_id, { }));
+        } catch (e) {
+            alertApiErrorImproved(e, {...DEFAULT_ALERT_INFO, title: "Failed to start update"})
+        }
+    }
+
     return (
         <>
+            <Modal isOpen={update_process !== null}>
+                <Modal.Backdrop>
+                    <Modal.Container size="lg">
+                        <Modal.Dialog>
+                            <Modal.CloseTrigger />
+                            <Modal.Header>
+                                <Modal.Heading>Update Process</Modal.Heading>
+                            </Modal.Header>
+                            <Modal.Body>
+                                <ProcessLogging
+                                    socket={update_process}
+                                    on_finish={() => {
+                                        set_update_process(null);
+                                    }}
+                                    on_failure={() => queue_alert({
+                                        status: "danger",
+                                        title: "Failed to update server",
+                                        description: ""
+                                    })}
+                                />
+                            </Modal.Body>
+                        </Modal.Dialog>
+                    </Modal.Container>
+                </Modal.Backdrop>
+            </Modal>
             <p style={{fontSize: "large"}}>Server Properties</p>
             <form onSubmit={e => {e.preventDefault(); changeConfiguration()}}>
                 <ConfigurationEditor current_values={configuration} onValueChange={set_config_changes} />
@@ -470,6 +533,25 @@ const ServerSettings = ({server_id, server_info, on_refresh}: ServerSettingsPara
                 </Switch>
                 <Button className="bg-blue-500 ml-2" type="submit">Apply</Button>
             </form>
+
+            <div>
+                <h3>Updater</h3>
+                {
+                    server_info == null
+                    ? (<p>Information is still loading...</p>)
+                    : server_info.supports_updating
+                    ? is_update_available
+                    ? (
+                        <>
+                            <p>An update is available! Click here to update!</p>
+                            <Button variant="primary" onClick={performUpdate}>Update</Button>
+                        </>
+                    )
+                    : (<Button variant="secondary" onClick={performUpdate}>Force Update</Button>)
+                    : (<p>Updating is not supported by this server.</p>)
+                }
+            </div>
+
             <Button className="bg-red-500" onClick={() => deleteServer()}>Delete Server</Button>
         </>
     )
