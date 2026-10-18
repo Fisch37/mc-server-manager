@@ -141,6 +141,10 @@ public abstract sealed class Utils permits Utils.Seal {
             false
         );
     }
+
+    public static <T> Iterable<T> toIterator(Stream<T> stream) {
+        return stream::iterator;
+    }
     
     private static final class Seal extends Utils { }
 }

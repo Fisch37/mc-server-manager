@@ -10,6 +10,7 @@ import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.web.bind.annotation.RestController;
 
+import de.maria_writes_code.mcsm.backend.features.plugins.PluginLoader;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.servers.Server;
@@ -30,17 +31,10 @@ public class App implements InitializingBean {
 
     @Autowired
     private AppConfig config;
+    @Autowired @SuppressWarnings("unused")
+    private PluginLoader plugins;
 
     public static void main(String[] args) {
-        // try {
-        //     new de.maria_writes_code.mcsm.backend.features.runtimes.AdoptiumRuntime(
-        //         25,
-        //         java.nio.file.Path.of("/home/maria/Documents/mc-server-manager/run/runtimes")
-        //     );
-        // } catch (java.io.IOException e) {
-        //     e.printStackTrace();
-        //     return;
-        // }
         SpringApplication.run(App.class, args);
     }
 

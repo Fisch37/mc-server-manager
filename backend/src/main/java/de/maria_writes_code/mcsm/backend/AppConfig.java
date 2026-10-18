@@ -10,8 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
+import de.maria_writes_code.mcsm.backend.features.plugins.Config;
+
 @Component
-public class AppConfig {
+public class AppConfig implements Config {
     private static final String STEAM_CMD_ENV = "MCSM_STEAMCMD";
     private static final String STEAM_CMD_DEFAULT = "steamcmd";
 
@@ -25,7 +27,7 @@ public class AppConfig {
         return env.getProperty(STEAM_CMD_ENV, STEAM_CMD_DEFAULT);
     }
 
-    private Path getDataLocation() {
+    public Path getDataLocation() {
         // Hacky forwards-backwards conversion, because Path is actually closer to what we want
         // (but env cannot convert Strings to Paths [I think bc Path is OS independent])
         return env.getProperty(DATA_LOC_ENV, File.class, DATA_LOC_DEFAULT).toPath();
@@ -45,6 +47,10 @@ public class AppConfig {
 
     public Path getVanillaJarLocation() {
         return getDataLocation().resolve("vanilla-jars");
+    }
+
+    public Path getPluginsLocation() {
+        return getDataLocation().resolve("plugins");
     }
 
     public Path getDatabaseLocation() {
