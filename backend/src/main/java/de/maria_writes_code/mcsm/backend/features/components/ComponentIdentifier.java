@@ -1,39 +1,30 @@
 package de.maria_writes_code.mcsm.backend.features.components;
 
-import java.util.Arrays;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
+import java.util.Objects;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
-import de.maria_writes_code.mcsm.backend.utils.Utils;
+public class ComponentIdentifier {
+    private final String id;
 
-public enum ComponentIdentifier {
-    Vanilla("vanilla"),
-    Fabric("fabric"),
-    Satisfactory("satisfactory")
-    ;
-
-    private static final Map<String, ComponentIdentifier> NAME_MAP = Arrays.stream(ComponentIdentifier.values())
-        .collect(Collectors.toUnmodifiableMap(c -> c.getSerializedName(), Function.identity()));
-    private final String serialized;
-
-    ComponentIdentifier(String serialized) {
-        this.serialized = serialized;
+    @JsonCreator
+    public ComponentIdentifier(String id) {
+        this.id = id;
     }
 
     @JsonValue
     public String getSerializedName() {
-        return serialized;
+        return id;
     }
 
-    @JsonCreator
-    public static ComponentIdentifier fromSerializedName(String serialized) throws IllegalArgumentException {
-        return Utils.throwIfNull(
-            NAME_MAP.get(serialized),
-            () -> new IllegalArgumentException("String \"%s\" does not correspond to a VersionSource".formatted(serialized))
-        );
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof ComponentIdentifier id2
+            && Objects.equals(id, id2.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
     }
 }

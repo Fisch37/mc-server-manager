@@ -42,7 +42,7 @@ public class SatisfactoryServerType implements ServerType<NoVersions>, Initializ
 
     @Override
     public ComponentIdentifier getIdentifier() {
-        return ComponentIdentifier.Satisfactory;
+        return new ComponentIdentifier("satisfactory");
     }
 
     @Override

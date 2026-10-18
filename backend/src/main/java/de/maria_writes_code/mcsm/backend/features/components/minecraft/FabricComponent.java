@@ -65,7 +65,7 @@ public class FabricComponent implements ServerType<FabricVersions>, Initializing
     
     @Override
     public ComponentIdentifier getIdentifier() {
-        return ComponentIdentifier.Fabric;
+        return new ComponentIdentifier("fabric");
     }
     
     @Override

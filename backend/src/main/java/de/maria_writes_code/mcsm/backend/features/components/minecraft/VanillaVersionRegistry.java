@@ -156,7 +156,7 @@ public class VanillaVersionRegistry implements InitializingBean, VersionProvider
 
     @Override
     public ComponentIdentifier getIdentifier() {
-        return ComponentIdentifier.Vanilla;
+        return new ComponentIdentifier("vanilla");
     }
 
     @Override
