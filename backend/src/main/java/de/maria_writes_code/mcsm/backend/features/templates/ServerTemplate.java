@@ -18,7 +18,7 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 
 import de.maria_writes_code.mcsm.backend.features.components.ComponentRegistry;
 import de.maria_writes_code.mcsm.backend.features.components.ServerType;
-import de.maria_writes_code.mcsm.backend.features.components.VersionCombo;
+import de.maria_writes_code.mcsm.backend.features.components.versions.VersionCombo;
 import de.maria_writes_code.mcsm.backend.utils.Utils;
 
 @NullMarked

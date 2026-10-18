@@ -23,7 +23,7 @@ import org.springframework.stereotype.Component;
 
 import de.maria_writes_code.mcsm.backend.AppConfig;
 import de.maria_writes_code.mcsm.backend.features.components.ComponentRegistry;
-import de.maria_writes_code.mcsm.backend.features.components.VanillaVersionRegistry;
+import de.maria_writes_code.mcsm.backend.features.components.minecraft.VanillaVersionRegistry;
 import de.maria_writes_code.mcsm.backend.features.runtimes.NoSuchRuntimeException;
 import de.maria_writes_code.mcsm.backend.features.runtimes.RuntimeProvider;
 import de.maria_writes_code.mcsm.backend.features.templates.ServerTemplate;

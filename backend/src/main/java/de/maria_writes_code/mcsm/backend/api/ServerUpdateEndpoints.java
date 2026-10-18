@@ -2,7 +2,6 @@ package de.maria_writes_code.mcsm.backend.api;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 import java.util.function.Supplier;
 

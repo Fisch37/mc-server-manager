@@ -1,4 +1,4 @@
-package de.maria_writes_code.mcsm.backend.features.components;
+package de.maria_writes_code.mcsm.backend.features.components.versions;
 
 import java.util.Collections;
 import java.util.Map;

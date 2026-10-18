@@ -1,4 +1,4 @@
-package de.maria_writes_code.mcsm.backend.features.components;
+package de.maria_writes_code.mcsm.backend.features.components.minecraft;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -24,11 +24,13 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import de.maria_writes_code.mcsm.backend.features.components.ComponentIdentifier;
+import de.maria_writes_code.mcsm.backend.features.components.ServerType;
 import de.maria_writes_code.mcsm.backend.features.components.configuration.ConfigurationDescriptor;
 import de.maria_writes_code.mcsm.backend.features.components.configuration.ServerConfigurationHelper;
 import de.maria_writes_code.mcsm.backend.features.components.execution_helpers.MinecraftExecutionHelper;
 import de.maria_writes_code.mcsm.backend.features.components.execution_helpers.ServerExecutionHelper;
-import de.maria_writes_code.mcsm.backend.features.components.versions.FabricVersions;
+import de.maria_writes_code.mcsm.backend.features.components.versions.VersionCombo;
 import de.maria_writes_code.mcsm.backend.features.components.versions.VersionProvider;
 import de.maria_writes_code.mcsm.backend.features.runtimes.RuntimeProvider;
 

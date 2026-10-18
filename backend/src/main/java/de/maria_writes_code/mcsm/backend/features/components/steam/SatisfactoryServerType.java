@@ -1,4 +1,4 @@
-package de.maria_writes_code.mcsm.backend.features.components;
+package de.maria_writes_code.mcsm.backend.features.components.steam;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -15,11 +15,14 @@ import org.springframework.stereotype.Service;
 
 import de.maria_writes_code.mcsm.backend.AppConfig;
 import de.maria_writes_code.mcsm.backend.features.components.execution_helpers.ServerExecutionHelper;
+import de.maria_writes_code.mcsm.backend.features.components.ComponentIdentifier;
+import de.maria_writes_code.mcsm.backend.features.components.ServerType;
 import de.maria_writes_code.mcsm.backend.features.components.configuration.ConfigurationDescriptor;
 import de.maria_writes_code.mcsm.backend.features.components.configuration.SatisfactoryConfigurationHelper;
 import de.maria_writes_code.mcsm.backend.features.components.configuration.ServerConfigurationHelper;
 import de.maria_writes_code.mcsm.backend.features.components.execution_helpers.NativeExecutionHelper;
 import de.maria_writes_code.mcsm.backend.features.components.versions.NoVersions;
+import de.maria_writes_code.mcsm.backend.features.components.versions.VersionCombo;
 import de.maria_writes_code.mcsm.backend.features.components.versions.VersionProvider;
 import de.maria_writes_code.mcsm.backend.features.updates.ServerUpdater;
 import de.maria_writes_code.mcsm.backend.features.updates.SteamCmdUpdater;

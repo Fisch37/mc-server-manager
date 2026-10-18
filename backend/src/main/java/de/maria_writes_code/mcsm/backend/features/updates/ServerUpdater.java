@@ -6,7 +6,7 @@ import java.util.function.Consumer;
 
 import org.jspecify.annotations.Nullable;
 
-import de.maria_writes_code.mcsm.backend.features.components.VersionCombo;
+import de.maria_writes_code.mcsm.backend.features.components.versions.VersionCombo;
 
 public interface ServerUpdater<T extends VersionCombo> {
     boolean checkUpdateAvailable(Path location) throws IOException;

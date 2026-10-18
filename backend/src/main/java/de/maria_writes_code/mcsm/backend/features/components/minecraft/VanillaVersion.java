@@ -1,4 +1,4 @@
-package de.maria_writes_code.mcsm.backend.features.components.versions;
+package de.maria_writes_code.mcsm.backend.features.components.minecraft;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -15,8 +15,8 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import de.maria_writes_code.mcsm.backend.features.components.VanillaVersionRegistry;
-import de.maria_writes_code.mcsm.backend.features.components.VersionCombo;
+import de.maria_writes_code.mcsm.backend.features.components.versions.Version;
+import de.maria_writes_code.mcsm.backend.features.components.versions.VersionCombo;
 import de.maria_writes_code.mcsm.backend.utils.Mutex;
 
 public class VanillaVersion implements Version, VersionCombo {

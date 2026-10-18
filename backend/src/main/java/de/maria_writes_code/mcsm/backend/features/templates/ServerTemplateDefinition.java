@@ -25,7 +25,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 import de.maria_writes_code.mcsm.backend.features.components.ComponentIdentifier;
-import de.maria_writes_code.mcsm.backend.features.components.VersionCombo;
+import de.maria_writes_code.mcsm.backend.features.components.versions.VersionCombo;
 import de.maria_writes_code.mcsm.backend.features.components.versions.VersionProviderCollection;
 import de.maria_writes_code.mcsm.backend.utils.Utils;
 

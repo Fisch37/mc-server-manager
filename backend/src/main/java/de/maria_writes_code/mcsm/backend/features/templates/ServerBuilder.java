@@ -13,8 +13,8 @@ import org.springframework.stereotype.Component;
 
 import de.maria_writes_code.mcsm.backend.AppConfig;
 import de.maria_writes_code.mcsm.backend.features.components.ComponentRegistry;
-import de.maria_writes_code.mcsm.backend.features.components.VanillaVersionRegistry;
-import de.maria_writes_code.mcsm.backend.features.components.VersionCombo;
+import de.maria_writes_code.mcsm.backend.features.components.minecraft.VanillaVersionRegistry;
+import de.maria_writes_code.mcsm.backend.features.components.versions.VersionCombo;
 import de.maria_writes_code.mcsm.backend.features.server.ActiveServer;
 import de.maria_writes_code.mcsm.backend.features.server.Server;
 import de.maria_writes_code.mcsm.backend.features.server.ServerManager;

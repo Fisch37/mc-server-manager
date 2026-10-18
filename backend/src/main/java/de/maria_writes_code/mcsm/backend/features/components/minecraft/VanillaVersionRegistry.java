@@ -1,4 +1,4 @@
-package de.maria_writes_code.mcsm.backend.features.components;
+package de.maria_writes_code.mcsm.backend.features.components.minecraft;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -23,15 +23,15 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import de.maria_writes_code.mcsm.backend.AppConfig;
+import de.maria_writes_code.mcsm.backend.features.components.ComponentIdentifier;
+import de.maria_writes_code.mcsm.backend.features.components.ServerType;
 import de.maria_writes_code.mcsm.backend.features.components.configuration.ConfigurationDescriptor;
 import de.maria_writes_code.mcsm.backend.features.components.configuration.MinecraftConfigurationHelper;
 import de.maria_writes_code.mcsm.backend.features.components.configuration.ServerConfigurationHelper;
 import de.maria_writes_code.mcsm.backend.features.components.execution_helpers.MinecraftExecutionHelper;
 import de.maria_writes_code.mcsm.backend.features.components.execution_helpers.ServerExecutionHelper;
-import de.maria_writes_code.mcsm.backend.features.components.versions.ServerJar;
-import de.maria_writes_code.mcsm.backend.features.components.versions.ServerJarRepository;
-import de.maria_writes_code.mcsm.backend.features.components.versions.VanillaVersion;
 import de.maria_writes_code.mcsm.backend.features.components.versions.Version;
+import de.maria_writes_code.mcsm.backend.features.components.versions.VersionCombo;
 import de.maria_writes_code.mcsm.backend.features.components.versions.VersionProvider;
 import de.maria_writes_code.mcsm.backend.features.runtimes.RuntimeProvider;
 import static de.maria_writes_code.mcsm.backend.App.LOGGER;
