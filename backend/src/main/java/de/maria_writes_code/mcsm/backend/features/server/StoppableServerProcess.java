@@ -25,7 +25,8 @@ public class StoppableServerProcess extends ServerProcess {
         while (!onExit.isDone()) {
             try {
                 onExit.get();
-            } catch (InterruptedException ignored) {
+            } catch (InterruptedException e) {
+                LOGGER.warn("Thread interrupted while terminating process", e);
             } catch (ExecutionException|CancellationException e) {
                 LOGGER.error("Unexpected error while waiting on server termination", e);
                 break;
