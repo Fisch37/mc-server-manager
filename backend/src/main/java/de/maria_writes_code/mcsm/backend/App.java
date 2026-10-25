@@ -2,7 +2,6 @@ package de.maria_writes_code.mcsm.backend;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -26,20 +25,13 @@ import io.swagger.v3.oas.annotations.servers.Server;
         @Server(url = "/api", description = "Production Docker")
     }
 )
-public class App implements InitializingBean {
+public class App {
     public static final Logger LOGGER = LoggerFactory.getLogger("MCSM App");
 
-    @Autowired
-    private AppConfig config;
     @Autowired @SuppressWarnings("unused")
     private PluginLoader plugins;
 
     public static void main(String[] args) {
         SpringApplication.run(App.class, args);
-    }
-
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        config.setup();
     }
 }

@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
@@ -13,7 +14,7 @@ import org.springframework.stereotype.Component;
 import de.maria_writes_code.mcsm.backend.features.plugins.Config;
 
 @Component
-public class AppConfig implements Config {
+public class AppConfig implements Config, InitializingBean {
     private static final String STEAM_CMD_ENV = "MCSM_STEAMCMD";
     private static final String STEAM_CMD_DEFAULT = "steamcmd";
 
@@ -62,9 +63,15 @@ public class AppConfig implements Config {
             getServerLocation(),
             getTemplateLocation(),
             getRuntimeLocation(),
-            getVanillaJarLocation()
+            getVanillaJarLocation(),
+            getPluginsLocation()
         )) {
             Files.createDirectories(dir);
         }
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        setup();
     }
 }
