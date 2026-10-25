@@ -29,6 +29,7 @@ public class ComponentRegistry implements InitializingBean, ServerTypeRegistry {
                 c -> c.getIdentifier(),
                 Function.identity()
             ));
+        LOGGER.info("Registered {} server types", components.size());
     }
 
     @Override
@@ -48,7 +49,11 @@ public class ComponentRegistry implements InitializingBean, ServerTypeRegistry {
     }
 
     public ServerType<?> getComponent(ComponentIdentifier identifier) {
-        return components.get(identifier);
+        var comp = components.get(identifier);
+        if (comp == null) {
+            LOGGER.warn("Could not find component for identifier {}", identifier);
+        }
+        return comp;
     }
 
     public Collection<VersionProvider> getVersionProviders() {
